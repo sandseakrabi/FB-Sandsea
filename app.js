@@ -8,7 +8,7 @@
 const CONFIG = {
   // 👉 After deploying code.gs as a Web App, paste the URL here.
   //    Example: https://script.google.com/macros/s/AKfycb.../exec
-  API_URL: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+  API_URL: "https://script.google.com/macros/s/AKfycbyPBrNql6_u9VZc_wMuwX2SWECMHDFyRcjthX4pKbS5F8qXC5vlWQR1SkeW9ETMoxtpZQ/exec",
   IMAGE_MAX_DIM: 1000,
   IMAGE_QUALITY: 0.82
 };
