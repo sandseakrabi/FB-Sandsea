@@ -8,24 +8,76 @@
 const CONFIG = {
   // 👉 After deploying code.gs as a Web App, paste the URL here.
   //    Example: https://script.google.com/macros/s/AKfycb.../exec
-  API_URL: "https://script.google.com/macros/s/AKfycbxXc7ZoBIfMXJXECTY4PJg_ZJva-6yk6pnCBkF1njdsB9nOUBuGlPQAxui9Fc6AkgJoCQ/exec",
+  API_URL: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
   IMAGE_MAX_DIM: 1000,
   IMAGE_QUALITY: 0.82
 };
 
 const state = {
   items: [],
-  categories: [],
+  categories: [],   // [{th, en}]
   period: "lunch",      // customer-selected period
   category: "all",
   adminToken: sessionStorage.getItem("ss_admin_token") || null,
   editingId: null,
-  adminPeriodFilter: "all"
+  adminPeriodFilter: "all",
+  lang: localStorage.getItem("ss_lang") || "th"
 };
 
 /* ---------------- helpers ---------------- */
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+const I18N = {
+  th: {
+    headerSub: "Railay Beach · เมนูอาหาร",
+    lunch: "มื้อกลางวัน", lunchSub: "Lunch Menu",
+    dinner: "มื้อกลางคืน", dinnerSub: "Dinner Menu",
+    staffLogin: "เข้าสู่ระบบพนักงาน",
+    zoomHint: "ลากนิ้วเพื่อซูม / แตะนอกรูปเพื่อปิด",
+    all: "ทั้งหมด",
+    emptyCategory: "ยังไม่มีเมนูในหมวดนี้",
+    tapToZoom: "🔍 แตะเพื่อดูใหญ่"
+  },
+  en: {
+    headerSub: "Railay Beach · Menu",
+    lunch: "Lunch", lunchSub: "Lunch Menu",
+    dinner: "Dinner", dinnerSub: "Dinner Menu",
+    staffLogin: "Staff Login",
+    zoomHint: "Pinch to zoom / tap outside to close",
+    all: "All",
+    emptyCategory: "No dishes in this category yet",
+    tapToZoom: "🔍 Tap to enlarge"
+  }
+};
+function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) || I18N.th[key] || key; }
+
+function applyStaticTranslations(){
+  $$("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $("#btn-lang-toggle").textContent = state.lang === "th" ? "EN" : "ไทย";
+  document.documentElement.lang = state.lang === "th" ? "th" : "en";
+}
+
+$("#btn-lang-toggle").addEventListener("click", ()=>{
+  state.lang = state.lang === "th" ? "en" : "th";
+  localStorage.setItem("ss_lang", state.lang);
+  applyStaticTranslations();
+  // re-render whichever customer screen is visible
+  if(!$("#screen-menu").classList.contains("hidden")){
+    $("#menu-crumb").textContent = t(state.period);
+    renderCategoryChips();
+    renderMenuGrid();
+  }
+});
+
+/* bilingual field readers — fall back to Thai if English wasn't entered */
+function itemName(item){ return (state.lang === "en" && item.name_en) ? item.name_en : item.name_th; }
+function itemDesc(item){ return (state.lang === "en" && item.description_en) ? item.description_en : item.description_th; }
+function categoryLabel(catObj){
+  if(!catObj) return "";
+  return (state.lang === "en" && catObj.en) ? catObj.en : catObj.th;
+}
+function findCategory(th){ return state.categories.find(c=>c.th===th); }
 
 function showLoading(text){
   $("#loading-text").textContent = text || "กำลังโหลด...";
@@ -88,19 +140,19 @@ async function loadMenuData(){
 function openMenuFor(period){
   state.period = period;
   state.category = "all";
-  $("#menu-crumb").textContent = period === "lunch" ? "มื้อกลางวัน" : "มื้อกลางคืน";
+  $("#menu-crumb").textContent = t(period);
   renderCategoryChips();
   renderMenuGrid();
   show("screen-menu");
 }
 
 function categoriesForPeriod(period){
-  const cats = new Set();
+  const ths = new Set();
   state.items.filter(i => i.period === period || i.period === "both").forEach(i=>{
-    if(i.category) cats.add(i.category);
+    if(i.category_th) ths.add(i.category_th);
   });
   // preserve admin-defined order
-  return state.categories.filter(c => cats.has(c));
+  return state.categories.filter(c => ths.has(c.th));
 }
 
 function renderCategoryChips(){
@@ -109,14 +161,14 @@ function renderCategoryChips(){
   row.innerHTML = "";
   const allChip = document.createElement("button");
   allChip.className = "chip" + (state.category==="all" ? " active" : "");
-  allChip.textContent = "ทั้งหมด";
+  allChip.textContent = t("all");
   allChip.onclick = ()=>{ state.category="all"; renderCategoryChips(); renderMenuGrid(); };
   row.appendChild(allChip);
   cats.forEach(c=>{
     const chip = document.createElement("button");
-    chip.className = "chip" + (state.category===c ? " active" : "");
-    chip.textContent = c;
-    chip.onclick = ()=>{ state.category=c; renderCategoryChips(); renderMenuGrid(); };
+    chip.className = "chip" + (state.category===c.th ? " active" : "");
+    chip.textContent = categoryLabel(c);
+    chip.onclick = ()=>{ state.category=c.th; renderCategoryChips(); renderMenuGrid(); };
     row.appendChild(chip);
   });
 }
@@ -124,30 +176,31 @@ function renderCategoryChips(){
 function renderMenuGrid(){
   const grid = $("#menu-grid");
   let list = state.items.filter(i => i.period === state.period || i.period === "both");
-  if(state.category !== "all") list = list.filter(i=>i.category===state.category);
+  if(state.category !== "all") list = list.filter(i=>i.category_th===state.category);
 
   if(list.length === 0){
-    grid.innerHTML = `<div class="empty-state"><div class="icon">🍽️</div>ยังไม่มีเมนูในหมวดนี้</div>`;
+    grid.innerHTML = `<div class="empty-state"><div class="icon">🍽️</div>${t("emptyCategory")}</div>`;
     return;
   }
   grid.innerHTML = "";
   list.forEach(item=>{
     const card = document.createElement("div");
     card.className = "menu-card";
+    const nm = itemName(item), desc = itemDesc(item);
     card.innerHTML = `
       <div class="img-wrap">
-        ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" loading="lazy">` : ""}
-        <span class="zoom-hint">🔍 แตะเพื่อดูใหญ่</span>
+        ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(nm)}" loading="lazy">` : ""}
+        <span class="zoom-hint">${t("tapToZoom")}</span>
       </div>
       <div class="body">
         <div class="row1">
-          <span class="name">${escapeHtml(item.name)}</span>
+          <span class="name">${escapeHtml(nm)}</span>
           <span class="price">฿${Number(item.price).toLocaleString()}</span>
         </div>
-        ${item.description ? `<div class="desc">${escapeHtml(item.description)}</div>` : ""}
+        ${desc ? `<div class="desc">${escapeHtml(desc)}</div>` : ""}
       </div>`;
     if(item.imageUrl){
-      card.querySelector(".img-wrap").addEventListener("click", ()=>openLightbox(item.imageUrl, item.name));
+      card.querySelector(".img-wrap").addEventListener("click", ()=>openLightbox(item.imageUrl, nm));
     }
     grid.appendChild(card);
   });
@@ -266,11 +319,12 @@ function renderAdminList(){
   list.forEach(item=>{
     const row = document.createElement("div");
     row.className = "admin-list-row";
+    const cat = findCategory(item.category_th);
     row.innerHTML = `
       ${item.imageUrl ? `<img src="${item.imageUrl}">` : `<div style="width:52px;height:52px;border-radius:10px;background:var(--sand);"></div>`}
       <div class="info">
-        <div class="nm">${escapeHtml(item.name)}</div>
-        <div class="meta">${escapeHtml(item.category||"-")} · ฿${Number(item.price).toLocaleString()} · ${periodLabel(item.period)}</div>
+        <div class="nm">${escapeHtml(item.name_th)}${item.name_en ? ` <span style="font-weight:400;color:var(--ink-soft);">/ ${escapeHtml(item.name_en)}</span>` : ""}</div>
+        <div class="meta">${escapeHtml(cat ? cat.th : "-")} · ฿${Number(item.price).toLocaleString()} · ${periodLabel(item.period)}</div>
       </div>
       <div class="actions">
         <button class="icon-btn" data-edit="${item.id}">✏️</button>
@@ -337,7 +391,7 @@ function populateCategorySelect(){
   sel.innerHTML = `<option value="">— เลือกหมวดหมู่ —</option>`;
   state.categories.forEach(c=>{
     const opt = document.createElement("option");
-    opt.value = c; opt.textContent = c;
+    opt.value = c.th; opt.textContent = c.en ? `${c.th} / ${c.en}` : c.th;
     sel.appendChild(opt);
   });
 }
@@ -348,11 +402,13 @@ function editItem(id){
   state.editingId = id;
   $("#form-title").textContent = "แก้ไขเมนู";
   $("#item-id").value = item.id;
-  $("#item-name").value = item.name;
+  $("#item-name").value = item.name_th;
+  $("#item-name-en").value = item.name_en || "";
   $("#item-price").value = item.price;
-  $("#item-desc").value = item.description || "";
+  $("#item-desc").value = item.description_th || "";
+  $("#item-desc-en").value = item.description_en || "";
   populateCategorySelect();
-  $("#item-category").value = item.category || "";
+  $("#item-category").value = item.category_th || "";
   $("#item-period").value = item.period || "lunch";
   pendingImageBase64 = null;
   if(item.imageUrl){
@@ -370,8 +426,10 @@ function resetForm(){
   $("#form-title").textContent = "เพิ่มเมนูใหม่";
   $("#item-id").value = "";
   $("#item-name").value = "";
+  $("#item-name-en").value = "";
   $("#item-price").value = "";
   $("#item-desc").value = "";
+  $("#item-desc-en").value = "";
   $("#item-category").value = "";
   $("#item-period").value = "lunch";
   $("#image-preview-img").style.display = "none";
@@ -381,10 +439,12 @@ function resetForm(){
 
 $("#btn-save-item").onclick = async ()=>{
   const name = $("#item-name").value.trim();
+  const nameEn = $("#item-name-en").value.trim();
   const price = $("#item-price").value.trim();
   const category = $("#item-category").value;
   const period = $("#item-period").value;
   const description = $("#item-desc").value.trim();
+  const descriptionEn = $("#item-desc-en").value.trim();
 
   if(!name || !price || !category){
     return toast("กรุณากรอกชื่อ ราคา และหมวดหมู่ให้ครบ");
@@ -394,7 +454,9 @@ $("#btn-save-item").onclick = async ()=>{
     action: state.editingId ? "updateItem" : "addItem",
     token: state.adminToken,
     id: state.editingId || undefined,
-    name, price, category, period, description,
+    name_th: name, name_en: nameEn,
+    price, category_th: category, period,
+    description_th: description, description_en: descriptionEn,
     imageBase64: pendingImageBase64 || undefined
   };
 
@@ -443,7 +505,8 @@ function renderCategoryTagList(){
   state.categories.forEach(c=>{
     const tag = document.createElement("div");
     tag.className = "tag";
-    tag.innerHTML = `${escapeHtml(c)} <button data-cat="${escapeHtml(c)}">✕</button>`;
+    const label = c.en ? `${c.th} / ${c.en}` : c.th;
+    tag.innerHTML = `${escapeHtml(label)} <button data-cat="${escapeHtml(c.th)}">✕</button>`;
     wrap.appendChild(tag);
   });
   wrap.querySelectorAll("[data-cat]").forEach(b=>{
@@ -453,15 +516,17 @@ function renderCategoryTagList(){
 
 $("#btn-add-category").onclick = async ()=>{
   const val = $("#new-category-input").value.trim();
+  const valEn = $("#new-category-input-en").value.trim();
   if(!val) return;
-  if(state.categories.includes(val)) return toast("มีหมวดหมู่นี้อยู่แล้ว");
+  if(state.categories.some(c=>c.th===val)) return toast("มีหมวดหมู่นี้อยู่แล้ว");
   showLoading("กำลังเพิ่มหมวดหมู่...");
   try{
-    const res = await apiPost({action:"addCategory", token: state.adminToken, category: val});
+    const res = await apiPost({action:"addCategory", token: state.adminToken, category_th: val, category_en: valEn});
     hideLoading();
     if(res.ok){
       state.categories = res.categories;
       $("#new-category-input").value = "";
+      $("#new-category-input-en").value = "";
       renderCategoryTagList();
       populateCategorySelect();
       toast("เพิ่มหมวดหมู่แล้ว");
@@ -474,11 +539,11 @@ $("#btn-add-category").onclick = async ()=>{
   }
 };
 
-async function removeCategory(cat){
-  if(!confirm(`ลบหมวดหมู่ "${cat}"? (เมนูที่ใช้หมวดนี้จะไม่ถูกลบ)`)) return;
+async function removeCategory(catTh){
+  if(!confirm(`ลบหมวดหมู่ "${catTh}"? (เมนูที่ใช้หมวดนี้จะไม่ถูกลบ)`)) return;
   showLoading("กำลังลบหมวดหมู่...");
   try{
-    const res = await apiPost({action:"removeCategory", token: state.adminToken, category: cat});
+    const res = await apiPost({action:"removeCategory", token: state.adminToken, category_th: catTh});
     hideLoading();
     if(res.ok){
       state.categories = res.categories;
@@ -501,6 +566,7 @@ if("serviceWorker" in navigator){
 }
 
 (async function init(){
+  applyStaticTranslations();
   if(CONFIG.API_URL.includes("PASTE_YOUR_APPS_SCRIPT")){
     toast("⚠️ ยังไม่ได้ตั้งค่า API_URL ใน app.js");
   }

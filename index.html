@@ -17,9 +17,10 @@
 
   <!-- ============ CUSTOMER: HOME ============ -->
   <header class="sunset-band">
+    <button class="lang-toggle" id="btn-lang-toggle" type="button">EN</button>
     <div class="brand-mark">
       <h1>SandSea Restaurant</h1>
-      <div class="sub">Railay Beach · เมนูอาหาร</div>
+      <div class="sub" id="header-sub">Railay Beach · เมนูอาหาร</div>
     </div>
     <div class="wave-divider">
       <svg viewBox="0 0 600 48" preserveAspectRatio="none">
@@ -33,16 +34,16 @@
     <div class="choice-grid">
       <button class="choice-card lunch" data-period="lunch">
         <div class="icon">☀️</div>
-        <div class="label">มื้อกลางวัน</div>
-        <div class="time">Lunch Menu</div>
+        <div class="label" data-i18n="lunch">มื้อกลางวัน</div>
+        <div class="time" data-i18n="lunchSub">Lunch Menu</div>
       </button>
       <button class="choice-card dinner" data-period="dinner">
         <div class="icon">🌙</div>
-        <div class="label">มื้อกลางคืน</div>
-        <div class="time">Dinner Menu</div>
+        <div class="label" data-i18n="dinner">มื้อกลางคืน</div>
+        <div class="time" data-i18n="dinnerSub">Dinner Menu</div>
       </button>
     </div>
-    <div class="staff-link"><button id="btn-staff-login">เข้าสู่ระบบพนักงาน</button></div>
+    <div class="staff-link"><button id="btn-staff-login" data-i18n="staffLogin">เข้าสู่ระบบพนักงาน</button></div>
   </main>
 
   <!-- ============ CUSTOMER: CATEGORY + MENU ============ -->
@@ -59,7 +60,7 @@
   <div class="lightbox" id="lightbox">
     <button class="close-btn" id="lightbox-close">✕</button>
     <img id="lightbox-img" src="" alt="">
-    <div class="hint">ลากนิ้วเพื่อซูม / แตะนอกรูปเพื่อปิด</div>
+    <div class="hint" data-i18n="zoomHint">ลากนิ้วเพื่อซูม / แตะนอกรูปเพื่อปิด</div>
   </div>
 
   <!-- ============ ADMIN: LOGIN ============ -->
@@ -119,8 +120,12 @@
 
           <div class="form-grid" style="margin-top:14px;">
             <div class="field">
-              <label>ชื่อเมนู *</label>
+              <label>ชื่อเมนู (ไทย) *</label>
               <input type="text" id="item-name" placeholder="เช่น ผัดไทยกุ้งสด">
+            </div>
+            <div class="field">
+              <label>Dish name (English) — optional</label>
+              <input type="text" id="item-name-en" placeholder="e.g. Pad Thai with Prawns">
             </div>
             <div class="field">
               <label>ราคา (บาท) *</label>
@@ -142,8 +147,12 @@
             </div>
           </div>
           <div class="field">
-            <label>รายละเอียดเมนู</label>
+            <label>รายละเอียดเมนู (ไทย)</label>
             <textarea id="item-desc" placeholder="ส่วนผสม / จุดเด่นของเมนู"></textarea>
+          </div>
+          <div class="field">
+            <label>Description (English) — optional</label>
+            <textarea id="item-desc-en" placeholder="Ingredients / highlights"></textarea>
           </div>
 
           <div style="display:flex; gap:10px; margin-top:6px;">
@@ -158,10 +167,17 @@
         <div class="card">
           <h3 style="font-family:var(--font-display);color:var(--sea-navy);margin-bottom:10px;">หมวดหมู่เมนู</h3>
           <div class="category-tag-list" id="category-tag-list"></div>
-          <div style="display:flex; gap:8px; margin-top:10px;">
-            <input type="text" id="new-category-input" placeholder="เพิ่มหมวดหมู่ใหม่ เช่น ของหวาน" style="flex:1; padding:10px 12px; border-radius:8px; border:1.5px solid var(--sand-deep); background:var(--sand-pale);">
-            <button class="btn" id="btn-add-category">เพิ่ม</button>
+          <div class="form-grid">
+            <div class="field">
+              <label>ชื่อหมวดหมู่ (ไทย) *</label>
+              <input type="text" id="new-category-input" placeholder="เช่น ของหวาน">
+            </div>
+            <div class="field">
+              <label>Category name (English) — optional</label>
+              <input type="text" id="new-category-input-en" placeholder="e.g. Desserts">
+            </div>
           </div>
+          <button class="btn" id="btn-add-category">เพิ่มหมวดหมู่</button>
         </div>
       </div>
 

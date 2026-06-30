@@ -84,6 +84,14 @@ a{color:inherit; text-decoration:none;}
   line-height:0;
 }
 .wave-divider svg{display:block; width:100%; height:48px;}
+.lang-toggle{
+  position:absolute; top:14px; right:14px; z-index:4;
+  background:rgba(255,255,255,.22); color:var(--cream);
+  border:1.5px solid rgba(255,255,255,.5);
+  padding:6px 14px; border-radius:999px; font-size:.78rem; font-weight:600;
+  letter-spacing:.5px; backdrop-filter:blur(2px);
+}
+.lang-toggle:active{transform:scale(.95);}
 
 /* ---------- generic page container ---------- */
 .screen{
