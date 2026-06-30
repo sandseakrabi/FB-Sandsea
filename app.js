@@ -8,7 +8,7 @@
 const CONFIG = {
   // 👉 After deploying code.gs as a Web App, paste the URL here.
   //    Example: https://script.google.com/macros/s/AKfycb.../exec
-  API_URL: "https://script.google.com/macros/s/AKfycbxXc7ZoBIfMXJXECTY4PJg_ZJva-6yk6pnCBkF1njdsB9nOUBuGlPQAxui9Fc6AkgJoCQ/exec",
+  API_URL: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
   IMAGE_MAX_DIM: 1000,
   IMAGE_QUALITY: 0.82
 };
@@ -494,6 +494,12 @@ async function removeCategory(cat){
 }
 
 /* ---------------- INIT ---------------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+
 (async function init(){
   if(CONFIG.API_URL.includes("PASTE_YOUR_APPS_SCRIPT")){
     toast("⚠️ ยังไม่ได้ตั้งค่า API_URL ใน app.js");
