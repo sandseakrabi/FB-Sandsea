@@ -2,373 +2,181 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SandSea Restaurant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>SandSea Restaurant — เมนูอาหาร</title>
+<meta name="description" content="เมนูอาหาร SandSea Restaurant, Railay Beach">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#15304F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Trirong:wght@400;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --sand-light:#FAF6EF;
-    --sand:#F3ECE0;
-    --sea-deep:#0E3B38;
-    --sea-mid:#155C53;
-    --gold:#C9A05C;
-    --gold-soft:#E3CFA2;
-    --ink:#1B2E2C;
-    --coral:#D98870;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;}
-  body{
-    font-family:"Noto Sans Thai","Trirong",sans-serif;
-    color:var(--ink);
-    background:var(--sand-light);
-    -webkit-font-smoothing:antialiased;
-    overscroll-behavior-y:contain;
-  }
-  .display{font-family:"Trirong",serif;}
-  button{font-family:inherit;border:none;background:none;cursor:pointer;}
-
-  /* ===================== LANDING SCREEN ===================== */
-  /* แนวคิด: บนเป็นทราย ล่างเป็นทะเล มีเส้นคลื่นสีทองคั่นกลาง
-     เพื่อสื่อชื่อร้าน "SandSea" ตรงตัวที่สุด */
-  #landing-screen{
-    min-height:100svh;
-    display:flex;
-    flex-direction:column;
-  }
-  .landing-top{
-    flex:1.1;
-    background:linear-gradient(180deg,var(--sand-light) 0%,var(--sand) 100%);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:32px 24px 8px;
-  }
-  .landing-eyebrow{
-    letter-spacing:.28em;
-    font-size:11px;
-    color:var(--sea-mid);
-    text-transform:uppercase;
-    margin-bottom:14px;
-  }
-  .landing-title{
-    font-size:42px;
-    font-weight:700;
-    color:var(--sea-deep);
-    line-height:1.15;
-  }
-  .landing-sub{
-    margin-top:10px;
-    font-size:14px;
-    color:var(--sea-mid);
-    opacity:.85;
-  }
-  .wave-divider{display:block;width:100%;height:46px;}
-  .landing-bottom{
-    flex:1;
-    background:var(--sea-deep);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:18px;
-    padding:8px 28px 40px;
-  }
-  .meal-btn{
-    width:100%;
-    max-width:340px;
-    display:flex;
-    align-items:center;
-    gap:14px;
-    padding:18px 22px;
-    border-radius:999px;
-    border:1px solid rgba(201,160,92,.55);
-    background:rgba(255,255,255,.04);
-    color:var(--sand-light);
-    transition:background .2s ease, transform .15s ease;
-  }
-  .meal-btn:active{transform:scale(.97);}
-  .meal-btn:hover{background:rgba(201,160,92,.12);}
-  .meal-icon{
-    width:34px;height:34px;flex:none;
-    display:flex;align-items:center;justify-content:center;
-    border-radius:50%;
-    background:var(--gold);
-    color:var(--sea-deep);
-  }
-  .meal-text{text-align:left;}
-  .meal-text .t1{font-family:"Trirong",serif;font-size:18px;font-weight:600;}
-  .meal-text .t2{font-size:12px;color:var(--gold-soft);margin-top:2px;}
-
-  /* ===================== MENU SCREEN ===================== */
-  #menu-screen{display:none;min-height:100svh;background:var(--sand-light);}
-  .menu-header{
-    position:sticky;top:0;z-index:10;
-    background:var(--sea-deep);
-    color:var(--sand-light);
-    padding:16px 16px calc(14px + env(safe-area-inset-top,0px));
-    padding-top:calc(16px + env(safe-area-inset-top,0px));
-    display:flex;align-items:center;gap:12px;
-    box-shadow:0 6px 16px rgba(14,59,56,.18);
-  }
-  .back-btn{
-    width:34px;height:34px;border-radius:50%;
-    border:1px solid rgba(201,160,92,.5);
-    color:var(--gold-soft);
-    display:flex;align-items:center;justify-content:center;
-    flex:none;
-  }
-  .header-titles{flex:1;}
-  .header-titles .h1{font-family:"Trirong",serif;font-size:17px;font-weight:600;}
-  .header-titles .h2{font-size:12px;color:var(--gold-soft);margin-top:1px;}
-
-  .chip-row{
-    display:flex;gap:8px;overflow-x:auto;
-    padding:14px 16px;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  .chip-row::-webkit-scrollbar{display:none;}
-  .chip{
-    flex:none;
-    padding:9px 18px;
-    border-radius:999px;
-    font-size:13px;
-    border:1px solid var(--sea-mid);
-    color:var(--sea-deep);
-    background:var(--sand-light);
-    white-space:nowrap;
-    transition:background .15s ease,color .15s ease;
-  }
-  .chip.active{
-    background:var(--sea-deep);
-    color:var(--gold-soft);
-    border-color:var(--sea-deep);
-  }
-
-  .item-list{padding:4px 16px 48px;}
-  .item-card{
-    display:flex;gap:14px;
-    padding:16px 2px;
-    border-bottom:1px solid rgba(201,160,92,.35);
-    opacity:0;
-    transform:translateY(8px);
-    animation:fadeUp .45s ease forwards;
-  }
-  @keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
-  .item-thumb{
-    width:84px;height:84px;border-radius:14px;flex:none;
-    background:var(--sand) center/cover no-repeat;
-    display:flex;align-items:center;justify-content:center;
-    color:var(--sea-mid);font-size:11px;
-  }
-  .item-info{flex:1;display:flex;flex-direction:column;justify-content:center;}
-  .item-name{font-family:"Trirong",serif;font-size:16px;font-weight:600;color:var(--ink);}
-  .item-cat{font-size:11px;color:var(--sea-mid);margin-top:3px;opacity:.8;}
-  .item-price{font-size:14px;color:var(--gold);font-weight:600;margin-top:6px;}
-
-  .state-box{
-    padding:60px 28px;text-align:center;color:var(--sea-mid);
-  }
-  .state-box .big{font-size:34px;margin-bottom:10px;}
-  .retry-btn{
-    margin-top:16px;padding:10px 22px;border-radius:999px;
-    background:var(--sea-deep);color:var(--sand-light);font-size:13px;
-  }
-  .demo-banner{
-    background:var(--coral);color:#fff;font-size:12px;
-    text-align:center;padding:8px 12px;
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="app">
 
-<!-- ===================== หน้าแรก: เลือกกลางวัน/กลางคืน ===================== -->
-<div id="landing-screen">
-  <div class="landing-top">
-    <div class="landing-eyebrow">Welcome to</div>
-    <div class="landing-title display">SandSea<br>Restaurant</div>
-    <div class="landing-sub">เลือกช่วงเวลาเพื่อดูเมนูของเรา</div>
-  </div>
-
-  <svg class="wave-divider" viewBox="0 0 400 46" preserveAspectRatio="none">
-    <path d="M0,18 C60,40 120,0 200,18 C280,36 340,4 400,20 L400,46 L0,46 Z" fill="#0E3B38"></path>
-    <path d="M0,18 C60,40 120,0 200,18 C280,36 340,4 400,20" fill="none" stroke="#C9A05C" stroke-width="1.4"></path>
-  </svg>
-
-  <div class="landing-bottom">
-    <button class="meal-btn" onclick="selectMealTime('กลางวัน')">
-      <span class="meal-icon">☀</span>
-      <span class="meal-text"><span class="t1">กลางวัน</span><span class="t2">Lunch Menu</span></span>
-    </button>
-    <button class="meal-btn" onclick="selectMealTime('กลางคืน')">
-      <span class="meal-icon">☾</span>
-      <span class="meal-text"><span class="t1">กลางคืน</span><span class="t2">Dinner Menu</span></span>
-    </button>
-  </div>
-</div>
-
-<!-- ===================== หน้าเมนู: หมวดหมู่ + รายการอาหาร ===================== -->
-<div id="menu-screen">
-  <div class="menu-header">
-    <button class="back-btn" onclick="backToLanding()">←</button>
-    <div class="header-titles">
-      <div class="h1 display">SandSea Restaurant</div>
-      <div class="h2" id="mealtime-label">กลางวัน</div>
+  <!-- ============ CUSTOMER: HOME ============ -->
+  <header class="sunset-band">
+    <div class="brand-mark">
+      <h1>SandSea Restaurant</h1>
+      <div class="sub">Railay Beach · เมนูอาหาร</div>
     </div>
+    <div class="wave-divider">
+      <svg viewBox="0 0 600 48" preserveAspectRatio="none">
+        <path d="M0,24 C100,44 200,4 300,24 C400,44 500,4 600,24 L600,48 L0,48 Z" fill="#FBF1DC" opacity="0.55"/>
+        <path d="M0,32 C100,12 200,52 300,32 C400,12 500,52 600,32 L600,48 L0,48 Z" fill="#FBF1DC"/>
+      </svg>
+    </div>
+  </header>
+
+  <main id="screen-home" class="screen">
+    <div class="choice-grid">
+      <button class="choice-card lunch" data-period="lunch">
+        <div class="icon">☀️</div>
+        <div class="label">มื้อกลางวัน</div>
+        <div class="time">Lunch Menu</div>
+      </button>
+      <button class="choice-card dinner" data-period="dinner">
+        <div class="icon">🌙</div>
+        <div class="label">มื้อกลางคืน</div>
+        <div class="time">Dinner Menu</div>
+      </button>
+    </div>
+    <div class="staff-link"><button id="btn-staff-login">เข้าสู่ระบบพนักงาน</button></div>
+  </main>
+
+  <!-- ============ CUSTOMER: CATEGORY + MENU ============ -->
+  <main id="screen-menu" class="screen hidden">
+    <div class="topbar" style="padding-left:0;padding-right:0;">
+      <button class="back-btn" id="btn-back-home">‹</button>
+      <span class="crumb" id="menu-crumb">มื้อกลางวัน</span>
+    </div>
+    <div class="chip-row" id="category-chips"></div>
+    <div class="menu-grid" id="menu-grid"></div>
+  </main>
+
+  <!-- ============ LIGHTBOX ============ -->
+  <div class="lightbox" id="lightbox">
+    <button class="close-btn" id="lightbox-close">✕</button>
+    <img id="lightbox-img" src="" alt="">
+    <div class="hint">ลากนิ้วเพื่อซูม / แตะนอกรูปเพื่อปิด</div>
   </div>
-  <div id="demo-banner" class="demo-banner" style="display:none;">
-    นี่คือข้อมูลตัวอย่าง • ใส่ลิงก์ Apps Script ใน CONFIG เพื่อใช้ข้อมูลจริง
-  </div>
-  <div class="chip-row" id="chip-row"></div>
-  <div id="content-area"></div>
-</div>
 
-<script>
-/* =====================================================================
-   CONFIG : วางลิงก์ /exec ที่ได้จาก Apps Script ตรงนี้
-   ถ้ายังไม่ใส่ ระบบจะใช้ "ข้อมูลตัวอย่าง" ด้านล่างแทนไปก่อน
-   เพื่อให้ทดสอบหน้าตาเว็บได้ทันที
-===================================================================== */
-const API_URL = "https://script.google.com/macros/s/AKfycbwpYNXsgDvLX8RRETFfZOC0f7CyBL1wXAy1igbPWQZaxq9YsMtlvXG1Pm9kKUdBMS5Vsg/exec";
-
-// ข้อมูลตัวอย่าง ใช้แสดงผลตอนยังไม่ได้เชื่อมต่อจริง
-const DEMO_DATA = [
-  {ID:"1", Name:"ข้าวผัดปูทะเล", Price:280, ImageURL:"https://placehold.co/200x200/0E3B38/F3ECE0?text=Crab+Rice", Category:"จานหลัก", MealTime:"กลางวัน"},
-  {ID:"2", Name:"ผัดไทยกุ้งสด", Price:220, ImageURL:"https://placehold.co/200x200/155C53/F3ECE0?text=Pad+Thai", Category:"จานหลัก", MealTime:"กลางวัน"},
-  {ID:"3", Name:"ส้มตำไทย", Price:160, ImageURL:"https://placehold.co/200x200/C9A05C/1B2E2C?text=Somtum", Category:"เรียกน้ำย่อย", MealTime:"กลางวัน"},
-  {ID:"4", Name:"มะพร้าวน้ำหอม", Price:90, ImageURL:"https://placehold.co/200x200/D98870/FFFFFF?text=Coconut", Category:"เครื่องดื่ม", MealTime:"กลางวัน"},
-  {ID:"5", Name:"สเต็กเนื้อออสเตรเลีย", Price:680, ImageURL:"https://placehold.co/200x200/0E3B38/F3ECE0?text=Steak", Category:"จานหลัก", MealTime:"กลางคืน"},
-  {ID:"6", Name:"กุ้งเผาซอสมะขาม", Price:450, ImageURL:"https://placehold.co/200x200/155C53/F3ECE0?text=Grilled+Prawn", Category:"อาหารทะเล", MealTime:"กลางคืน"},
-  {ID:"7", Name:"ค็อกเทลซันเซ็ต", Price:240, ImageURL:"https://placehold.co/200x200/C9A05C/1B2E2C?text=Sunset+Cocktail", Category:"เครื่องดื่ม", MealTime:"กลางคืน"},
-];
-
-let MENU_DATA = [];
-let currentMealTime = "";
-let currentCategory = "";
-
-// ===================================================================
-// โหลดข้อมูลตอนเปิดหน้าเว็บ ครั้งเดียว แล้วเก็บไว้ใช้ทั้งหน้า
-// เหตุผล: กดเปลี่ยนกลางวัน/กลางคืน/หมวดหมู่ไปมาได้ลื่น ไม่ต้องโหลดซ้ำ
-// ===================================================================
-async function loadMenu() {
-  const usingDemo = !API_URL || API_URL.startsWith("วาง URL");
-  if (usingDemo) {
-    MENU_DATA = DEMO_DATA;
-    document.getElementById("demo-banner").style.display = "block";
-    return;
-  }
-  try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    MENU_DATA = data;
-  } catch (err) {
-    MENU_DATA = null; // ใช้บอกสถานะ error ตอน render
-  }
-}
-
-function selectMealTime(mealTime) {
-  currentMealTime = mealTime;
-  document.getElementById("landing-screen").style.display = "none";
-  document.getElementById("menu-screen").style.display = "block";
-  document.getElementById("mealtime-label").textContent =
-    mealTime === "กลางวัน" ? "เมนูช่วงกลางวัน" : "เมนูช่วงกลางคืน";
-  renderCategories();
-}
-
-function backToLanding() {
-  document.getElementById("menu-screen").style.display = "none";
-  document.getElementById("landing-screen").style.display = "flex";
-  currentCategory = "";
-}
-
-// ===================================================================
-// สร้างปุ่มหมวดหมู่ "จากข้อมูลจริง" ไม่ใช่ค่าตายตัวในโค้ด
-// เหตุผล: Admin พิมพ์หมวดอะไรมา ปุ่มก็โผล่ตามนั้นเองอัตโนมัติ
-// ===================================================================
-function renderCategories() {
-  const chipRow = document.getElementById("chip-row");
-  const content = document.getElementById("content-area");
-
-  if (MENU_DATA === null) {
-    chipRow.innerHTML = "";
-    content.innerHTML = `<div class="state-box">
-      <div class="big">⚠</div>
-      <div>เชื่อมต่อข้อมูลเมนูไม่สำเร็จ ลองเช็คอินเทอร์เน็ตแล้วลองใหม่</div>
-      <button class="retry-btn" onclick="location.reload()">ลองใหม่</button>
-    </div>`;
-    return;
-  }
-
-  const items = MENU_DATA.filter(i => String(i.MealTime).trim() === currentMealTime);
-  const categories = [...new Set(items.map(i => String(i.Category).trim()).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, "th"));
-
-  if (categories.length === 0) {
-    chipRow.innerHTML = "";
-    content.innerHTML = `<div class="state-box">
-      <div class="big">🍽</div>
-      <div>ยังไม่มีเมนูในช่วงเวลานี้</div>
-    </div>`;
-    return;
-  }
-
-  currentCategory = categories[0];
-  chipRow.innerHTML = categories.map(cat =>
-    `<button class="chip ${cat === currentCategory ? 'active' : ''}" data-cat="${cat}" onclick="selectCategory('${cat}')">${cat}</button>`
-  ).join("");
-
-  renderItems();
-}
-
-function selectCategory(cat) {
-  currentCategory = cat;
-  document.querySelectorAll(".chip").forEach(c => {
-    c.classList.toggle("active", c.dataset.cat === cat);
-  });
-  renderItems();
-}
-
-function renderItems() {
-  const content = document.getElementById("content-area");
-  const items = MENU_DATA.filter(i =>
-    String(i.MealTime).trim() === currentMealTime &&
-    String(i.Category).trim() === currentCategory
-  );
-
-  if (items.length === 0) {
-    content.innerHTML = `<div class="state-box">
-      <div class="big">🍽</div>
-      <div>ยังไม่มีเมนูในหมวดนี้</div>
-    </div>`;
-    return;
-  }
-
-  content.innerHTML = `<div class="item-list">` + items.map((item, idx) => `
-    <div class="item-card" style="animation-delay:${idx * 0.05}s">
-      <div class="item-thumb" style="background-image:url('${item.ImageURL || ""}')">
-        ${item.ImageURL ? "" : "ไม่มีรูป"}
+  <!-- ============ ADMIN: LOGIN ============ -->
+  <main id="screen-login" class="screen hidden">
+    <div class="login-box">
+      <h2>เข้าสู่ระบบพนักงาน</h2>
+      <p>สำหรับเจ้าหน้าที่ร้าน SandSea Restaurant เท่านั้น</p>
+      <div class="field">
+        <label>รหัสผ่าน</label>
+        <input type="password" id="admin-password" placeholder="••••••••">
       </div>
-      <div class="item-info">
-        <div class="item-name display">${item.Name}</div>
-        <div class="item-cat">${item.Category}</div>
-        <div class="item-price">${formatPrice(item.Price)}</div>
+      <button class="btn block" id="btn-do-login">เข้าสู่ระบบ</button>
+      <div style="margin-top:14px;">
+        <button class="btn ghost" id="btn-cancel-login">กลับหน้าลูกค้า</button>
       </div>
     </div>
-  `).join("") + `</div>`;
-}
+  </main>
 
-function formatPrice(p) {
-  const n = Number(p);
-  if (isNaN(n)) return "";
-  return n.toLocaleString("th-TH") + " ฿";
-}
+  <!-- ============ ADMIN: PANEL ============ -->
+  <div id="screen-admin" class="hidden">
+    <div class="admin-header">
+      <h2>จัดการเมนู — SandSea</h2>
+      <button class="btn secondary" id="btn-logout">ออกจากระบบ</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="tab-btn active" data-tab="list">รายการเมนู</button>
+      <button class="tab-btn" data-tab="form">เพิ่ม/แก้ไขเมนู</button>
+      <button class="tab-btn" data-tab="categories">หมวดหมู่</button>
+    </div>
+    <div class="admin-body">
 
-loadMenu();
-</script>
+      <!-- LIST TAB -->
+      <div id="tab-list" class="tab-pane">
+        <div class="chip-row" id="admin-period-filter">
+          <button class="chip active" data-period="all">ทั้งหมด</button>
+          <button class="chip" data-period="lunch">กลางวัน</button>
+          <button class="chip" data-period="dinner">กลางคืน</button>
+        </div>
+        <div class="card" id="admin-list-card">
+          <div id="admin-list"></div>
+        </div>
+      </div>
+
+      <!-- FORM TAB -->
+      <div id="tab-form" class="tab-pane hidden">
+        <div class="card">
+          <h3 id="form-title" style="font-family:var(--font-display);color:var(--sea-navy);margin-bottom:14px;">เพิ่มเมนูใหม่</h3>
+          <input type="hidden" id="item-id">
+
+          <div class="image-preview" id="image-preview">
+            <img id="image-preview-img" src="" alt="" style="display:none;">
+          </div>
+          <div class="image-drop" id="image-drop">
+            📷 แตะเพื่อเลือกรูปภาพ (จะถูกบีบอัดและครอปอัตโนมัติ)
+            <input type="file" id="image-input" accept="image/*" class="hidden">
+          </div>
+
+          <div class="form-grid" style="margin-top:14px;">
+            <div class="field">
+              <label>ชื่อเมนู *</label>
+              <input type="text" id="item-name" placeholder="เช่น ผัดไทยกุ้งสด">
+            </div>
+            <div class="field">
+              <label>ราคา (บาท) *</label>
+              <input type="number" id="item-price" placeholder="180" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label>หมวดหมู่ *</label>
+              <select id="item-category">
+                <option value="">— เลือกหมวดหมู่ —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>ช่วงเวลาขาย *</label>
+              <select id="item-period">
+                <option value="lunch">กลางวัน</option>
+                <option value="dinner">กลางคืน</option>
+                <option value="both">ทั้งสองช่วง</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>รายละเอียดเมนู</label>
+            <textarea id="item-desc" placeholder="ส่วนผสม / จุดเด่นของเมนู"></textarea>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:6px;">
+            <button class="btn block" id="btn-save-item">บันทึกเมนู</button>
+            <button class="btn secondary" id="btn-reset-form">ล้างฟอร์ม</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORIES TAB -->
+      <div id="tab-categories" class="tab-pane hidden">
+        <div class="card">
+          <h3 style="font-family:var(--font-display);color:var(--sea-navy);margin-bottom:10px;">หมวดหมู่เมนู</h3>
+          <div class="category-tag-list" id="category-tag-list"></div>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <input type="text" id="new-category-input" placeholder="เพิ่มหมวดหมู่ใหม่ เช่น ของหวาน" style="flex:1; padding:10px 12px; border-radius:8px; border:1.5px solid var(--sand-deep); background:var(--sand-pale);">
+            <button class="btn" id="btn-add-category">เพิ่ม</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ LOADING / TOAST ============ -->
+  <div class="loading-overlay hidden" id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text" style="color:var(--ink-soft); font-size:.85rem;">กำลังโหลดเมนู...</div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
