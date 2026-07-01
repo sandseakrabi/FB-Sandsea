@@ -343,7 +343,8 @@
         var code = this.dataset.code;
 
         /* อัปเดตตัวอักษรและธงในปุ่ม */
-        document.getElementById('lang-code').textContent = code;
+        var lc = document.getElementById('lang-code');
+        if (lc) lc.textContent = code;
         var srcSvg = this.querySelector('svg');
         var dstSvg = document.getElementById('lang-flag-svg');
         if (srcSvg && dstSvg) {
