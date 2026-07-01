@@ -277,7 +277,7 @@ function renderMenuGrid() {
 }
 
 function escapeHtml(s) {
-  return (s || "").replace(/[&<>"']/g, m =>
+   return String(s == null ? "" : s).replace(/[&<>"']/g, m =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])
   );
 }
