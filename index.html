@@ -4,23 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>SandSea Restaurant — เมนูอาหาร</title>
-<meta name="description" content="เมนูอาหาร SandSea Restaurant, Railay Beach">
+<meta name="theme-color" content="#15304F">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#15304F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Prompt:wght@300;400;500;600&family=Noto+Sans+Thai:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="app">
 
-  <!-- ============ CUSTOMER: HOME ============ -->
+  <!-- ===== SUNSET HEADER ===== -->
   <header class="sunset-band">
-    <button class="lang-toggle" id="btn-lang-toggle" type="button">EN</button>
+    <button class="lang-toggle" id="btn-lang-toggle" type="button">🇹🇭 TH ▾</button>
     <div class="brand-mark">
       <h1>SandSea Restaurant</h1>
-      <div class="sub" id="header-sub">Railay Beach · เมนูอาหาร</div>
+      <div class="sub" id="header-sub" data-i18n="headerSub">Railay Beach · เมนูอาหาร</div>
     </div>
     <div class="wave-divider">
       <svg viewBox="0 0 600 48" preserveAspectRatio="none">
@@ -30,6 +29,7 @@
     </div>
   </header>
 
+  <!-- ===== HOME: PERIOD CHOICE ===== -->
   <main id="screen-home" class="screen">
     <div class="choice-grid">
       <button class="choice-card lunch" data-period="lunch">
@@ -43,12 +43,14 @@
         <div class="time" data-i18n="dinnerSub">Dinner Menu</div>
       </button>
     </div>
-    <div class="staff-link"><button id="btn-staff-login" data-i18n="staffLogin">เข้าสู่ระบบพนักงาน</button></div>
+    <div class="staff-link">
+      <button id="btn-staff-login" data-i18n="staffLogin">เข้าสู่ระบบพนักงาน</button>
+    </div>
   </main>
 
-  <!-- ============ CUSTOMER: CATEGORY + MENU ============ -->
+  <!-- ===== MENU SCREEN ===== -->
   <main id="screen-menu" class="screen hidden">
-    <div class="topbar" style="padding-left:0;padding-right:0;">
+    <div class="topbar">
       <button class="back-btn" id="btn-back-home">‹</button>
       <span class="crumb" id="menu-crumb">มื้อกลางวัน</span>
     </div>
@@ -56,30 +58,30 @@
     <div class="menu-grid" id="menu-grid"></div>
   </main>
 
-  <!-- ============ LIGHTBOX ============ -->
+  <!-- ===== LIGHTBOX ===== -->
   <div class="lightbox" id="lightbox">
     <button class="close-btn" id="lightbox-close">✕</button>
     <img id="lightbox-img" src="" alt="">
     <div class="hint" data-i18n="zoomHint">ลากนิ้วเพื่อซูม / แตะนอกรูปเพื่อปิด</div>
   </div>
 
-  <!-- ============ ADMIN: LOGIN ============ -->
+  <!-- ===== STAFF LOGIN ===== -->
   <main id="screen-login" class="screen hidden">
     <div class="login-box">
       <h2>เข้าสู่ระบบพนักงาน</h2>
-      <p>สำหรับเจ้าหน้าที่ร้าน SandSea Restaurant เท่านั้น</p>
+      <p>SandSea Restaurant Staff Only</p>
       <div class="field">
         <label>รหัสผ่าน</label>
         <input type="password" id="admin-password" placeholder="••••••••">
       </div>
       <button class="btn block" id="btn-do-login">เข้าสู่ระบบ</button>
       <div style="margin-top:14px;">
-        <button class="btn ghost" id="btn-cancel-login">กลับหน้าลูกค้า</button>
+        <button class="btn ghost" id="btn-cancel-login">← กลับ</button>
       </div>
     </div>
   </main>
 
-  <!-- ============ ADMIN: PANEL ============ -->
+  <!-- ===== ADMIN PANEL ===== -->
   <div id="screen-admin" class="hidden">
     <div class="admin-header">
       <h2>จัดการเมนู — SandSea</h2>
@@ -87,46 +89,59 @@
     </div>
     <div class="admin-tabs">
       <button class="tab-btn active" data-tab="list">รายการเมนู</button>
-      <button class="tab-btn" data-tab="form">เพิ่ม/แก้ไขเมนู</button>
+      <button class="tab-btn" data-tab="form">เพิ่ม/แก้ไข</button>
       <button class="tab-btn" data-tab="categories">หมวดหมู่</button>
     </div>
     <div class="admin-body">
 
-      <!-- LIST TAB -->
+      <!-- LIST -->
       <div id="tab-list" class="tab-pane">
         <div class="chip-row" id="admin-period-filter">
           <button class="chip active" data-period="all">ทั้งหมด</button>
           <button class="chip" data-period="lunch">กลางวัน</button>
           <button class="chip" data-period="dinner">กลางคืน</button>
         </div>
-        <div class="card" id="admin-list-card">
-          <div id="admin-list"></div>
-        </div>
+        <div class="card"><div id="admin-list"></div></div>
       </div>
 
-      <!-- FORM TAB -->
+      <!-- FORM -->
       <div id="tab-form" class="tab-pane hidden">
         <div class="card">
           <h3 id="form-title" style="font-family:var(--font-display);color:var(--sea-navy);margin-bottom:14px;">เพิ่มเมนูใหม่</h3>
           <input type="hidden" id="item-id">
 
+          <!-- Image -->
           <div class="image-preview" id="image-preview">
             <img id="image-preview-img" src="" alt="" style="display:none;">
           </div>
           <div class="image-drop" id="image-drop">
-            📷 แตะเพื่อเลือกรูปภาพ (จะถูกบีบอัดและครอปอัตโนมัติ)
+            📷 แตะเพื่อเลือกรูป (ครอป 4:3 และบีบอัดอัตโนมัติ)
             <input type="file" id="image-input" accept="image/*" class="hidden">
           </div>
 
-          <div class="form-grid" style="margin-top:14px;">
+          <!-- Name — 4 languages -->
+          <div class="lang-section-label">ชื่อเมนู</div>
+          <div class="form-grid">
             <div class="field">
-              <label>ชื่อเมนู (ไทย) *</label>
+              <label>🇹🇭 ไทย *</label>
               <input type="text" id="item-name" placeholder="เช่น ผัดไทยกุ้งสด">
             </div>
             <div class="field">
-              <label>Dish name (English) — optional</label>
+              <label>🇬🇧 English</label>
               <input type="text" id="item-name-en" placeholder="e.g. Pad Thai with Prawns">
             </div>
+            <div class="field">
+              <label>🇨🇳 中文</label>
+              <input type="text" id="item-name-zh" placeholder="例如：泰式炒河粉">
+            </div>
+            <div class="field">
+              <label>🇷🇺 Русский</label>
+              <input type="text" id="item-name-ru" placeholder="напр. Пад Тай с креветками">
+            </div>
+          </div>
+
+          <!-- Price / Category / Period -->
+          <div class="form-grid">
             <div class="field">
               <label>ราคา (บาท) *</label>
               <input type="number" id="item-price" placeholder="180" inputmode="decimal">
@@ -146,53 +161,74 @@
               </select>
             </div>
           </div>
-          <div class="field">
-            <label>รายละเอียดเมนู (ไทย)</label>
-            <textarea id="item-desc" placeholder="ส่วนผสม / จุดเด่นของเมนู"></textarea>
-          </div>
-          <div class="field">
-            <label>Description (English) — optional</label>
-            <textarea id="item-desc-en" placeholder="Ingredients / highlights"></textarea>
+
+          <!-- Description — 4 languages -->
+          <div class="lang-section-label">รายละเอียด / Description</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>🇹🇭 ไทย</label>
+              <textarea id="item-desc" placeholder="ส่วนผสม / จุดเด่น"></textarea>
+            </div>
+            <div class="field">
+              <label>🇬🇧 English</label>
+              <textarea id="item-desc-en" placeholder="Ingredients / highlights"></textarea>
+            </div>
+            <div class="field">
+              <label>🇨🇳 中文</label>
+              <textarea id="item-desc-zh" placeholder="食材 / 特色"></textarea>
+            </div>
+            <div class="field">
+              <label>🇷🇺 Русский</label>
+              <textarea id="item-desc-ru" placeholder="Ингредиенты / особенности"></textarea>
+            </div>
           </div>
 
-          <div style="display:flex; gap:10px; margin-top:6px;">
+          <div style="display:flex;gap:10px;margin-top:10px;">
             <button class="btn block" id="btn-save-item">บันทึกเมนู</button>
             <button class="btn secondary" id="btn-reset-form">ล้างฟอร์ม</button>
           </div>
         </div>
       </div>
 
-      <!-- CATEGORIES TAB -->
+      <!-- CATEGORIES -->
       <div id="tab-categories" class="tab-pane hidden">
         <div class="card">
           <h3 style="font-family:var(--font-display);color:var(--sea-navy);margin-bottom:10px;">หมวดหมู่เมนู</h3>
           <div class="category-tag-list" id="category-tag-list"></div>
+          <div class="lang-section-label" style="margin-top:14px;">เพิ่มหมวดหมู่ใหม่</div>
           <div class="form-grid">
             <div class="field">
-              <label>ชื่อหมวดหมู่ (ไทย) *</label>
-              <input type="text" id="new-category-input" placeholder="เช่น ของหวาน">
+              <label>🇹🇭 ไทย *</label>
+              <input type="text" id="new-cat-th" placeholder="เช่น ของหวาน">
             </div>
             <div class="field">
-              <label>Category name (English) — optional</label>
-              <input type="text" id="new-category-input-en" placeholder="e.g. Desserts">
+              <label>🇬🇧 English</label>
+              <input type="text" id="new-cat-en" placeholder="e.g. Desserts">
+            </div>
+            <div class="field">
+              <label>🇨🇳 中文</label>
+              <input type="text" id="new-cat-zh" placeholder="例如：甜点">
+            </div>
+            <div class="field">
+              <label>🇷🇺 Русский</label>
+              <input type="text" id="new-cat-ru" placeholder="напр. Десерты">
             </div>
           </div>
-          <button class="btn" id="btn-add-category">เพิ่มหมวดหมู่</button>
+          <button class="btn" id="btn-add-category" style="margin-top:6px;">เพิ่มหมวดหมู่</button>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- ============ LOADING / TOAST ============ -->
+  <!-- ===== LOADING + TOAST ===== -->
   <div class="loading-overlay hidden" id="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text" style="color:var(--ink-soft); font-size:.85rem;">กำลังโหลดเมนู...</div>
+    <div id="loading-text" style="color:var(--ink-soft);font-size:.85rem;">กำลังโหลด...</div>
   </div>
   <div class="toast" id="toast"></div>
 
 </div>
-
 <script src="app.js"></script>
 </body>
 </html>
