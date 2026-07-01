@@ -91,56 +91,43 @@ function categoryLabel(c) {
 }
 function findCategory(th) { return state.categories.find(c => c.th === th); }
 
-/* ---------- language switcher ---------- */
-function buildLangSwitcher() {
-  const btn = $("#btn-lang-toggle");
-  // Build a dropdown on click
-  btn.innerHTML = LANGS.find(l=>l.code===state.lang).flag + " " + LANGS.find(l=>l.code===state.lang).label + " ▾";
+/* ---------- language switcher ----------
+   ปุ่มเลือกภาษา (dropdown, ตำแหน่ง, ธง SVG) ถูกควบคุมโดยสคริปต์ใน
+   index.html แล้วทั้งหมด ตรงนี้ app.js มีหน้าที่แค่ "ฟัง" ว่าเลือกภาษาไหน
+   แล้วไปแปลข้อความ/รีเฟรชเมนู — ไม่ไปแตะปุ่มหรือสร้าง dropdown ซ้ำอีก */
+function syncLangButtonDisplay() {
+  const codeEl = document.getElementById("lang-code");
+  if (codeEl) codeEl.textContent = state.lang.toUpperCase();
 
-  btn.onclick = (e) => {
-    e.stopPropagation();
-    let menu = $("#lang-menu");
-    if (menu) { menu.remove(); return; }
-    menu = document.createElement("div");
-    menu.id = "lang-menu";
-    menu.style.cssText = `
-      position:absolute; top:100%; right:0; margin-top:6px;
-      background:rgba(21,48,79,.97); border-radius:12px; overflow:hidden;
-      box-shadow:0 8px 24px rgba(0,0,0,.3); z-index:100; min-width:120px;
-    `;
-    LANGS.forEach(l => {
-      const item = document.createElement("button");
-      item.textContent = l.flag + "  " + l.label;
-      item.style.cssText = `
-        display:block; width:100%; padding:11px 18px; text-align:left;
-        color:${l.code===state.lang?"#F2966B":"#FBF1DC"};
-        font-weight:${l.code===state.lang?"700":"400"};
-        font-family:inherit; font-size:.88rem; background:none; border:none; cursor:pointer;
-      `;
-      item.onclick = () => {
-        state.lang = l.code;
-        localStorage.setItem("ss_lang", l.code);
-        menu.remove();
-        buildLangSwitcher();
-        applyStaticTranslations();
-        if (!$("#screen-menu").classList.contains("hidden")) {
-          $("#menu-crumb").textContent = t(state.period);
-          renderCategoryChips();
-          renderMenuGrid();
-        }
-      };
-      menu.appendChild(item);
-    });
-    btn.parentElement.style.position = "relative";
-    btn.parentElement.appendChild(menu);
-    const close = () => { menu.remove(); document.removeEventListener("click", close); };
-    setTimeout(() => document.addEventListener("click", close), 0);
-  };
+  const opt = document.querySelector('#lang-dropdown .lang-option[data-lang="' + state.lang + '"]');
+  const dstSvg = document.getElementById("lang-flag-svg");
+  if (opt && dstSvg) {
+    const srcSvg = opt.querySelector("svg");
+    if (srcSvg) dstSvg.innerHTML = srcSvg.innerHTML;
+  }
+  $$("#lang-dropdown .lang-option").forEach(o => {
+    o.classList.toggle("active", o.dataset.lang === state.lang);
+  });
 }
+
+function setLang(lang) {
+  if (!LANGS.some(l => l.code === lang)) return;
+  state.lang = lang;
+  localStorage.setItem("ss_lang", lang);
+  applyStaticTranslations();
+  if (!$("#screen-menu").classList.contains("hidden")) {
+    $("#menu-crumb").textContent = t(state.period);
+    renderCategoryChips();
+    renderMenuGrid();
+  }
+}
+window.setLang = setLang;
+// index.html จะยิง event นี้เมื่อผู้ใช้เลือกภาษาจาก dropdown
+document.addEventListener("langChange", e => setLang(e.detail.lang));
 
 function applyStaticTranslations() {
   $$("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
-  buildLangSwitcher();
+  syncLangButtonDisplay();
   document.documentElement.lang = state.lang;
 }
 
