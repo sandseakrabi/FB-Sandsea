@@ -92,6 +92,13 @@ a{color:inherit; text-decoration:none;}
   letter-spacing:.5px; backdrop-filter:blur(2px);
   display:flex; align-items:center; gap:6px;
 }
+
+/* จอมือถือแคบ: ดันปุ่มเลือกภาษาให้เล็กลงนิดหน่อย และดันชื่อร้านลงมา
+   ไม่ให้ตัวหนังสือไปทับกับปุ่ม */
+@media(max-width:480px){
+  .sunset-band{padding-top:58px;}
+  .lang-toggle{top:12px; right:12px; padding:5px 11px; font-size:.72rem;}
+}
 .lang-toggle #lang-flag{font-size:1rem; line-height:1;}
 
 /* --------- SVG Flag icon (ใช้แทน emoji flag ที่ Windows ไม่รองรับ) --------- */
@@ -185,6 +192,13 @@ a{color:inherit; text-decoration:none;}
 .choice-card.dinner{background:var(--sea-navy); }
 .choice-card.dinner .label{color:var(--cream);}
 .choice-card.dinner .time{color:var(--sea-light);}
+
+/* จอมือถือแคบ: เรียงปุ่มมื้อกลางวัน/กลางคืนแบบบนล่างแทนซ้ายขวา
+   ให้แต่ละปุ่มเต็มความกว้างจอ กดง่ายขึ้น */
+@media(max-width:480px){
+  .choice-grid{grid-template-columns:1fr;}
+  .choice-card{padding:24px 18px;}
+}
 
 /* ---------- category chips ---------- */
 .chip-row{
