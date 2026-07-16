@@ -4,7 +4,7 @@
 =========================================================== */
 
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyUKJr_1RrnaCL50mRXV-iBkGQoxtogaC9W7IFoquP15wv0lImHoUUUqqXmR5qPapJTXg/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbzl-TGbIdmsAARRFObcjWCpKQ-gYFI4CBUaaNp0eXcnoyozJa_pRjbW2UwlIeVuQWfAGg/exec",
   IMAGE_MAX_DIM: 1000,
   IMAGE_QUALITY: 0.82
 };
@@ -583,6 +583,15 @@ async function removeCategory(th) {
 ============================================================ */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+
+  // ป้องกันปัญหา "ต้องรีเฟรชเองครั้งนึงถึงจะเห็นเวอร์ชันล่าสุด":
+  // เมื่อ SW ตัวใหม่เข้าคุมหน้าเว็บ (เพราะมีการอัปเดตไฟล์) ให้ reload อัตโนมัติทันทีหนึ่งครั้ง
+  let swRefreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    window.location.reload();
+  });
 }
 
 (async function init() {
