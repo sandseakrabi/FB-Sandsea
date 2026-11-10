@@ -4,7 +4,7 @@
 =========================================================== */
 
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyZ6DVX_lYd4FpBtBGPvyEbQunAATiMD-5eNqQgv9PlfwwP5mGCU9xLHcwRfYpEUScVxg/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbzKUK5xAd-t3dyq-7BI69WB46t97RIkzd-_IAJ0hRcaBG53DAkUGPmJcIUM07CC0lYk/exec",
   IMAGE_MAX_DIM: 1000,
   IMAGE_QUALITY: 0.82
 };
