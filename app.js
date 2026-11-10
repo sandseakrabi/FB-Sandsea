@@ -146,14 +146,14 @@ function toast(msg) {
 }
 
 function show(id) {
-  ["screen-home","screen-menu","screen-login"].forEach(s =>
+  ["screen-home","screen-menu","screen-login","screen-staff","screen-pos"].forEach(s =>
     $("#"+s).classList.toggle("hidden", s !== id)
   );
   $("#screen-admin").classList.add("hidden");
   window.scrollTo({ top: 0 });
 }
 function showAdmin() {
-  ["screen-home","screen-menu","screen-login"].forEach(s => $("#"+s).classList.add("hidden"));
+  ["screen-home","screen-menu","screen-login","screen-staff","screen-pos"].forEach(s => $("#"+s).classList.add("hidden"));
   $("#screen-admin").classList.remove("hidden");
 }
 
@@ -318,7 +318,7 @@ $("#btn-do-login").onclick = async () => {
       state.adminToken = res.token;
       sessionStorage.setItem("ss_admin_token", res.token);
       $("#admin-password").value = "";
-      enterAdmin();
+      enterStaffHome();
     } else { toast("รหัสผ่านไม่ถูกต้อง"); }
   } catch(e) { hideLoading(); toast("เชื่อมต่อไม่สำเร็จ"); }
 };
@@ -556,7 +556,8 @@ $("#btn-add-category").onclick = async () => {
     const res = await apiPost({
       action:"addCategory", token:state.adminToken,
       category_th: th, category_en: fv("#new-cat-en"),
-      category_zh: fv("#new-cat-zh"), category_ru: fv("#new-cat-ru")
+      category_zh: fv("#new-cat-zh"), category_ru: fv("#new-cat-ru"),
+      station: ($("#new-cat-station") || {}).value || "food"
     });
     hideLoading();
     if (res.ok) {
@@ -600,5 +601,5 @@ if ("serviceWorker" in navigator) {
     toast("⚠️ ยังไม่ได้ตั้งค่า API_URL ใน app.js");
   }
   await loadMenuData();
-  if (state.adminToken) { enterAdmin(); } else { show("screen-home"); }
+  if (state.adminToken) { enterStaffHome(); } else { show("screen-home"); }
 })();

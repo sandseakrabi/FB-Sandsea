@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Prompt:wght@300;400;500;600&family=Noto+Sans+Thai:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="pos.css">
 </head>
 <body>
 <div id="app">
@@ -93,7 +94,7 @@
   <div id="screen-admin" class="hidden">
     <div class="admin-header">
       <h2>จัดการเมนู — SandSea</h2>
-      <button class="btn secondary" id="btn-logout">ออกจากระบบ</button>
+      <div class="hdr-btns"><button class="btn secondary" id="btn-admin-back">← กลับ</button><button class="btn secondary" id="btn-logout">ออกจากระบบ</button></div>
     </div>
     <div class="admin-tabs">
       <button class="tab-btn active" data-tab="list">รายการเมนู</button>
@@ -222,10 +223,132 @@
               <input type="text" id="new-cat-ru" placeholder="напр. Десерты">
             </div>
           </div>
+          <div class="field" style="margin-top:6px;">
+            <label>ประเภท (ใช้เลือกเครื่องพิมพ์)</label>
+            <select id="new-cat-station">
+              <option value="food">🍳 อาหาร → เครื่องพิมพ์ครัว</option>
+              <option value="drink">🥤 เครื่องดื่ม → เครื่องพิมพ์บาร์</option>
+            </select>
+          </div>
+          <div class="hint-line">แตะไอคอน 🍳/🥤 หน้าหมวดหมู่ด้านบนเพื่อสลับประเภทของหมวดเดิม</div>
           <button class="btn" id="btn-add-category" style="margin-top:6px;">เพิ่มหมวดหมู่</button>
         </div>
       </div>
 
+    </div>
+  </div>
+
+
+  <!-- ===== STAFF HOME (หลังใส่รหัสผ่าน) ===== -->
+  <main id="screen-staff" class="screen hidden">
+    <div class="login-box" style="max-width:420px; margin:30px auto;">
+      <h2>เมนูพนักงาน</h2>
+      <p>เลือกงานที่ต้องการทำ</p>
+      <button class="btn block big" id="btn-go-pos">🧾 รับออเดอร์ / เปิดโต๊ะ</button>
+      <button class="btn block big secondary" id="btn-go-admin">🍽️ จัดการเมนู</button>
+      <button class="btn block secondary" id="btn-go-qr">🔳 ตั้งค่ารูป QR ชำระเงิน</button>
+      <input type="file" id="qr-input" accept="image/*" class="hidden">
+      <div style="margin-top:14px;"><button class="btn ghost" id="btn-staff-logout">ออกจากระบบ</button></div>
+    </div>
+  </main>
+
+  <!-- ===== POS: รับออเดอร์ ===== -->
+  <main id="screen-pos" class="screen hidden">
+
+    <!-- 1) โต๊ะ -->
+    <div id="pos-tables">
+      <div class="pos-head">
+        <button class="back-btn" id="btn-pos-back">‹</button>
+        <h3>รับออเดอร์</h3>
+        <button class="btn secondary" id="btn-refresh-tables" style="padding:7px 14px;">↻ รีเฟรช</button>
+      </div>
+      <div class="pos-section">
+        <h4>เปิดโต๊ะใหม่</h4>
+        <div class="field"><label>ชื่อพนักงานรับออเดอร์ *</label>
+          <input type="text" id="pos-staff" placeholder="เช่น แอน"></div>
+        <div class="field"><label>เบอร์โต๊ะ *</label>
+          <input type="text" id="pos-table-no" placeholder="เช่น 5 หรือ A3" inputmode="text"></div>
+        <button class="btn block" id="btn-open-table">เปิดโต๊ะ / เริ่มสั่งอาหาร</button>
+      </div>
+      <div class="pos-section">
+        <h4>โต๊ะที่เปิดอยู่ (แตะเพื่อสั่งเพิ่ม / เช็คบิล)</h4>
+        <div class="table-grid" id="pos-open-tables"></div>
+      </div>
+    </div>
+
+    <!-- 2) เลือกเมนู -->
+    <div id="pos-order" class="hidden">
+      <div class="pos-head">
+        <button class="back-btn" id="btn-order-back">‹</button>
+        <h3 id="pos-order-title">โต๊ะ</h3>
+      </div>
+      <div class="search-box"><input type="search" id="pos-search" placeholder="🔍 ค้นหาชื่อเมนู"></div>
+      <div class="chip-row" id="pos-period-chips"></div>
+      <div class="chip-row" id="pos-cat-chips"></div>
+      <div id="pos-cart" class="pos-cart hidden"></div>
+      <div class="pos-menu" id="pos-menu"></div>
+      <div class="cartbar">
+        <div class="info">รายการที่เลือก <span id="pos-cart-count">0</span> ชิ้น<b id="pos-cart-total">฿0</b></div>
+        <button class="btn" id="btn-review-order" disabled>ตรวจสอบออเดอร์</button>
+      </div>
+    </div>
+
+    <!-- 3) รายละเอียดโต๊ะ -->
+    <div id="pos-detail" class="hidden">
+      <div class="pos-head">
+        <button class="back-btn" id="btn-detail-back">‹</button>
+        <h3 id="pos-detail-title">โต๊ะ</h3>
+      </div>
+      <div class="pos-section" id="pos-detail-body"></div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn block secondary" id="btn-add-more">＋ สั่งเพิ่ม</button>
+        <button class="btn block" id="btn-checkout">💰 เช็คบิล</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== MODAL: ยืนยันออเดอร์ ===== -->
+  <div class="modal hidden" id="pos-confirm">
+    <div class="sheet">
+      <h3>ยืนยันการรับออเดอร์</h3>
+      <div id="pos-confirm-body"></div>
+      <div class="actions">
+        <button class="btn secondary" id="btn-confirm-cancel">กลับไปแก้ไข</button>
+        <button class="btn" id="btn-confirm-ok">✔ ยืนยันรับออเดอร์</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: เช็คบิล ===== -->
+  <div class="modal hidden" id="pos-checkout">
+    <div class="sheet">
+      <h3>เช็คบิล · <span id="co-table"></span></h3>
+      <div class="co-lines">
+        <div><span>ยอดรวม</span><span id="co-sub">฿0</span></div>
+        <div><span>ส่วนลด</span><span id="co-disc">฿0</span></div>
+        <div class="big"><span>ยอดสุทธิ</span><span id="co-total">฿0</span></div>
+      </div>
+      <div class="lang-section-label" style="margin-top:12px;">ส่วนลด (%)</div>
+      <div class="chip-row" id="co-quick" style="padding-bottom:4px;">
+        <button class="chip" data-pct="0">ไม่มี</button>
+        <button class="chip" data-pct="5">5%</button>
+        <button class="chip" data-pct="10">10%</button>
+        <button class="chip" data-pct="15">15%</button>
+        <button class="chip" data-pct="20">20%</button>
+      </div>
+      <div class="disc-row"><input type="number" id="pos-discount" min="0" max="100" step="any" inputmode="decimal" placeholder="อื่นๆ"> <span>%</span></div>
+      <div class="lang-section-label">วิธีชำระเงิน</div>
+      <div class="pay-grid" id="co-methods">
+        <button class="pay-btn" data-m="cash">เงินสด 💵</button>
+        <button class="pay-btn" data-m="credit">เครดิต 💳</button>
+        <button class="pay-btn" data-m="room">ลงห้อง 🏨</button>
+        <button class="pay-btn" data-m="qr">QR 📱</button>
+      </div>
+      <div id="co-qr" class="hidden"></div>
+      <div class="actions">
+        <button class="btn secondary" id="btn-pay-cancel">ยกเลิก</button>
+        <button class="btn" id="btn-pay-ok" disabled>✔ ยืนยันรับชำระ & พิมพ์บิล</button>
+      </div>
     </div>
   </div>
 
@@ -380,5 +503,6 @@
 
 
 <script src="app.js"></script>
+<script src="pos.js"></script>
 </body>
 </html>
