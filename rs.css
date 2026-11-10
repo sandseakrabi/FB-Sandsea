@@ -147,6 +147,10 @@
 @keyframes rsGlow{0%,100%{box-shadow:0 0 0 0 rgba(224,84,58,.45);} 50%{box-shadow:0 0 0 7px rgba(224,84,58,0);}}
 .table-btn .rs-tag{display:block; font-size:.68rem; font-weight:700; color:var(--sea-blue); margin-bottom:2px;}
 .table-btn.rs.pending .rs-tag{color:var(--sunset-deep);}
+/* การ์ด Room Service พื้นอ่อน → ตัวหนังสือต้องเข้ม (ค่าเดิมเป็นสีครีมสำหรับพื้นกรมท่าของโต๊ะปกติ จึงกลืนกับพื้น) */
+.table-btn.rs .tno{color:var(--sea-navy);}
+.table-btn.rs .tsum{color:var(--sunset-deep);}
+.table-btn.rs .tmeta{color:var(--ink-soft);}
 
 .rs-banner{border-radius:var(--radius-sm); padding:10px 12px; font-size:.84rem; font-weight:600; margin-bottom:10px; line-height:1.4;}
 .rs-banner.pending{background:#FFF1E6; color:var(--sunset-deep); border:1.5px solid var(--sunset-glow);}

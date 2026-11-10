@@ -12,7 +12,7 @@
   const STR = {
     th: {
       roomService: "Room Service", roomServiceSub: "สั่งอาหารถึงห้องพัก",
-      rsTitle: "สั่งอาหารเข้าห้องพัก", rsNote: "🛎️ พนักงานจะโทรยืนยันที่ห้องก่อนเริ่มทำอาหาร",
+      rsTitle: "สั่งอาหารเข้าห้องพัก", rsNote: "🛎️ ราคา Room Service · พนักงานจะโทรยืนยันที่ห้องก่อนเริ่มทำอาหาร",
       rsMyOrder: "รายการที่เลือก", rsNotePh: "หมายเหตุ เช่น ไม่เผ็ด / ไม่ใส่ผัก",
       rsGeneralNote: "หมายเหตุเพิ่มเติมถึงครัว (ถ้ามี)", rsGuestName: "ชื่อผู้สั่ง *", rsRoomNo: "เบอร์ห้อง *",
       rsReview: "ตรวจสอบคำสั่งซื้อ", rsConfirmTitle: "ยืนยันคำสั่งซื้อ", rsEdit: "กลับไปแก้ไข", rsSubmit: "✔ ยืนยันคำสั่ง",
@@ -31,7 +31,7 @@
     },
     en: {
       roomService: "Room Service", roomServiceSub: "Order to your room",
-      rsTitle: "Room Service", rsNote: "🛎️ Our staff will call your room to confirm before we start cooking",
+      rsTitle: "Room Service", rsNote: "🛎️ Room Service prices · our staff will call your room to confirm before we start cooking",
       rsMyOrder: "Your selection", rsNotePh: "Note, e.g. no spice",
       rsGeneralNote: "Additional note for the kitchen (optional)", rsGuestName: "Your name *", rsRoomNo: "Room number *",
       rsReview: "Review order", rsConfirmTitle: "Confirm your order", rsEdit: "Back to edit", rsSubmit: "✔ Place order",
@@ -50,7 +50,7 @@
     },
     zh: {
       roomService: "客房送餐", roomServiceSub: "餐点送到房间",
-      rsTitle: "客房送餐", rsNote: "🛎️ 开始制作前，工作人员会致电您的房间确认",
+      rsTitle: "客房送餐", rsNote: "🛎️ 客房送餐价格 · 开始制作前，工作人员会致电您的房间确认",
       rsMyOrder: "已选菜品", rsNotePh: "备注，例如：不要辣",
       rsGeneralNote: "给厨房的补充备注（选填）", rsGuestName: "您的姓名 *", rsRoomNo: "房间号 *",
       rsReview: "核对订单", rsConfirmTitle: "确认订单", rsEdit: "返回修改", rsSubmit: "✔ 确认下单",
@@ -69,7 +69,7 @@
     },
     ru: {
       roomService: "Рум-сервис", roomServiceSub: "Заказ в номер",
-      rsTitle: "Рум-сервис", rsNote: "🛎️ перед приготовлением сотрудник позвонит в номер для подтверждения",
+      rsTitle: "Рум-сервис", rsNote: "🛎️ Цены рум-сервиса · перед приготовлением сотрудник позвонит в номер для подтверждения",
       rsMyOrder: "Выбранные блюда", rsNotePh: "Пожелание, напр. не острое",
       rsGeneralNote: "Дополнительный комментарий для кухни (необязательно)", rsGuestName: "Ваше имя *", rsRoomNo: "Номер комнаты *",
       rsReview: "Проверить заказ", rsConfirmTitle: "Подтверждение заказа", rsEdit: "Назад к редактированию", rsSubmit: "✔ Оформить заказ",

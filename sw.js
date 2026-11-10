@@ -6,7 +6,7 @@
    to index.html / app.js / style.css so old clients pick up the
    new files instead of being stuck on a stale cached copy. *** */
 
-const SW_VERSION = "v4-roomservice-2026-11-10";              // <-- bump this on every deploy
+const SW_VERSION = "v5-rs-hours-tablecolor-2026-11-10";              // <-- bump this on every deploy
 const CACHE_NAME = "sandsea-shell-" + SW_VERSION;
 
 // Files that change often -> always try network first (falls back to cache offline)
@@ -48,10 +48,17 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = event.request.url;
 
+  // Only GET can be cached (POST to the API etc. must pass straight through)
+  if (event.request.method !== "GET") return;
+
   // Live menu data must always be fresh — never touch it
   if (url.includes("script.google.com")) return;
 
-  const isAppShell = APP_SHELL.some(path => url.endsWith(path.replace("./", "")));
+  // FIX: เดิมใช้ url.endsWith(path.replace("./","")) — "./" กลายเป็น "" แล้ว endsWith("") เป็นจริงเสมอ
+  // ทำให้ทุกไฟล์ (ไอคอน รูปเมนูจากเว็บอื่น) ถูกนับเป็นไฟล์หลักของแอป → ตอนนี้เทียบพาธเต็มและเฉพาะเว็บเราเท่านั้น
+  const reqUrl = new URL(url);
+  const isAppShell = reqUrl.origin === self.location.origin &&
+    APP_SHELL.some(path => new URL(path, self.location).pathname === reqUrl.pathname);
 
   if (isAppShell || event.request.mode === "navigate") {
     // Network-first: always try to get the latest HTML/JS/CSS.
@@ -59,8 +66,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          if (res && res.ok) {                       // ไม่เก็บหน้า error (404/500) ลง cache
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
           return res;
         })
         .catch(() => caches.match(event.request))
