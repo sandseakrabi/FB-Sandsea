@@ -12,7 +12,7 @@
   const STR = {
     th: {
       roomService: "Room Service", roomServiceSub: "สั่งอาหารถึงห้องพัก",
-      rsTitle: "สั่งอาหารเข้าห้องพัก", rsNote: "🛎️ พนักงานจะโทรยืนยันที่ห้องก่อนเริ่มทำอาหาร",
+      rsTitle: "สั่งอาหารเข้าห้องพัก", rsNote: "🛎️ ราคา Room Service · พนักงานจะโทรยืนยันที่ห้องก่อนเริ่มทำอาหาร",
       rsMyOrder: "รายการที่เลือก", rsNotePh: "หมายเหตุ เช่น ไม่เผ็ด / ไม่ใส่ผัก",
       rsGeneralNote: "หมายเหตุเพิ่มเติมถึงครัว (ถ้ามี)", rsGuestName: "ชื่อผู้สั่ง *", rsRoomNo: "เบอร์ห้อง *",
       rsReview: "ตรวจสอบคำสั่งซื้อ", rsConfirmTitle: "ยืนยันคำสั่งซื้อ", rsEdit: "กลับไปแก้ไข", rsSubmit: "✔ ยืนยันคำสั่ง",
@@ -23,11 +23,15 @@
       rsErrMany: "คุณมีออเดอร์ที่รอการยืนยันอยู่แล้ว กรุณารอพนักงานโทรกลับ",
       rsSending: "กำลังส่งคำสั่ง...", rsDoneTitle: "ส่งคำสั่งเรียบร้อย",
       rsDoneMsg: "พนักงานจะโทรติดต่อห้อง {room} เพื่อยืนยันคำสั่งก่อนเริ่มทำอาหาร",
+      rsHours: "ให้บริการ {open} - {close} น.",
+      rsBeforeTitle: "ยังไม่เปิดให้บริการ", rsBeforeMsg: "Room Service ให้บริการ {open} - {close} น. ขณะนี้ยังไม่ถึงเวลาให้บริการ กรุณาสั่งใหม่ตั้งแต่ {open} น. เป็นต้นไป",
+      rsAfterTitle: "หมดเวลาให้บริการแล้ว", rsAfterMsg: "Room Service ให้บริการ {open} - {close} น. ขณะนี้เลยเวลาให้บริการแล้ว กรุณาสั่งใหม่ในวันถัดไปตั้งแต่ {open} น. ขออภัยในความไม่สะดวก",
+      rsOk: "ตกลง",
       rsHome: "กลับหน้าหลัก", rsEmpty: "ยังไม่มีเมนู Room Service", rsLeave: "ทิ้งรายการที่เลือกและออก?"
     },
     en: {
       roomService: "Room Service", roomServiceSub: "Order to your room",
-      rsTitle: "Room Service", rsNote: "🛎️ our staff will call your room to confirm before we start cooking",
+      rsTitle: "Room Service", rsNote: "🛎️ Room Service prices · our staff will call your room to confirm before we start cooking",
       rsMyOrder: "Your selection", rsNotePh: "Note, e.g. no spice",
       rsGeneralNote: "Additional note for the kitchen (optional)", rsGuestName: "Your name *", rsRoomNo: "Room number *",
       rsReview: "Review order", rsConfirmTitle: "Confirm your order", rsEdit: "Back to edit", rsSubmit: "✔ Place order",
@@ -38,11 +42,15 @@
       rsErrMany: "You already have orders waiting for confirmation. Please wait for our call.",
       rsSending: "Sending your order...", rsDoneTitle: "Order received",
       rsDoneMsg: "Our staff will call room {room} to confirm your order before we start preparing it.",
+      rsHours: "Available {open} - {close}",
+      rsBeforeTitle: "Not open yet", rsBeforeMsg: "Room Service is available {open} - {close}. We are not open yet. Please order again from {open}.",
+      rsAfterTitle: "Service hours are over", rsAfterMsg: "Room Service is available {open} - {close}. We have just closed for today. Please order again tomorrow from {open}. Sorry for the inconvenience.",
+      rsOk: "OK",
       rsHome: "Back to home", rsEmpty: "No Room Service items available yet", rsLeave: "Discard your selected items and leave?"
     },
     zh: {
       roomService: "客房送餐", roomServiceSub: "餐点送到房间",
-      rsTitle: "客房送餐", rsNote: "🛎️ 开始制作前，工作人员会致电您的房间确认",
+      rsTitle: "客房送餐", rsNote: "🛎️ 客房送餐价格 · 开始制作前，工作人员会致电您的房间确认",
       rsMyOrder: "已选菜品", rsNotePh: "备注，例如：不要辣",
       rsGeneralNote: "给厨房的补充备注（选填）", rsGuestName: "您的姓名 *", rsRoomNo: "房间号 *",
       rsReview: "核对订单", rsConfirmTitle: "确认订单", rsEdit: "返回修改", rsSubmit: "✔ 确认下单",
@@ -53,11 +61,15 @@
       rsErrMany: "您已有待确认的订单，请等待我们来电。",
       rsSending: "正在发送订单...", rsDoneTitle: "已收到订单",
       rsDoneMsg: "工作人员将致电 {room} 房间确认订单，确认后才会开始制作。",
+      rsHours: "供应时间 {open} - {close}",
+      rsBeforeTitle: "尚未开始供应", rsBeforeMsg: "客房送餐供应时间为 {open} - {close}。目前尚未开始，请于 {open} 以后再下单。",
+      rsAfterTitle: "已结束供应", rsAfterMsg: "客房送餐供应时间为 {open} - {close}。今日已结束供应，请明天 {open} 以后再下单。给您带来不便，敬请谅解。",
+      rsOk: "确定",
       rsHome: "返回首页", rsEmpty: "暂无客房送餐菜品", rsLeave: "放弃已选菜品并离开？"
     },
     ru: {
       roomService: "Рум-сервис", roomServiceSub: "Заказ в номер",
-      rsTitle: "Рум-сервис", rsNote: "🛎️ перед приготовлением сотрудник позвонит в номер для подтверждения",
+      rsTitle: "Рум-сервис", rsNote: "🛎️ Цены рум-сервиса · перед приготовлением сотрудник позвонит в номер для подтверждения",
       rsMyOrder: "Выбранные блюда", rsNotePh: "Пожелание, напр. не острое",
       rsGeneralNote: "Дополнительный комментарий для кухни (необязательно)", rsGuestName: "Ваше имя *", rsRoomNo: "Номер комнаты *",
       rsReview: "Проверить заказ", rsConfirmTitle: "Подтверждение заказа", rsEdit: "Назад к редактированию", rsSubmit: "✔ Оформить заказ",
@@ -68,6 +80,10 @@
       rsErrMany: "У вас уже есть заказы, ожидающие подтверждения. Дождитесь нашего звонка.",
       rsSending: "Отправляем заказ...", rsDoneTitle: "Заказ получен",
       rsDoneMsg: "Сотрудник позвонит в номер {room}, чтобы подтвердить заказ, прежде чем мы начнём готовить.",
+      rsHours: "Работает {open} – {close}",
+      rsBeforeTitle: "Ещё не открыто", rsBeforeMsg: "Рум-сервис работает {open} – {close}. Сейчас ещё не время. Пожалуйста, закажите после {open}.",
+      rsAfterTitle: "Время работы закончилось", rsAfterMsg: "Рум-сервис работает {open} – {close}. Сегодня приём заказов завершён. Пожалуйста, закажите завтра после {open}. Приносим извинения.",
+      rsOk: "ОК",
       rsHome: "На главную", rsEmpty: "Блюд для рум-сервиса пока нет", rsLeave: "Отменить выбранные блюда и выйти?"
     }
   };
@@ -82,6 +98,74 @@
   const uuid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
     : "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 
+  /* ---------------- เวลาให้บริการ Room Service ----------------
+     แก้เวลาตรงนี้ที่เดียว (และแก้ค่าเดียวกันใน code.gs ด้วย: RS_OPEN_MIN / RS_CLOSE_MIN)
+     รับออเดอร์ตั้งแต่เวลาเปิด จนถึงก่อนเวลาปิด (19.59 ยังสั่งได้ 20.00 สั่งไม่ได้) */
+  const RS_OPEN = { h: 11, m: 0 }, RS_CLOSE = { h: 20, m: 0 };
+  const RS_OPEN_MIN = RS_OPEN.h * 60 + RS_OPEN.m, RS_CLOSE_MIN = RS_CLOSE.h * 60 + RS_CLOSE.m;
+  const hhmm = x => String(x.h).padStart(2, "0") + "." + String(x.m).padStart(2, "0");
+  const fillHours = s => s.replace(/\{open\}/g, hhmm(RS_OPEN)).replace(/\{close\}/g, hhmm(RS_CLOSE));
+
+  // เวลาไทยเสมอ ไม่ขึ้นกับโซนเวลาในมือถือลูกค้า (แขกต่างชาติมือถือมักตั้งเวลาประเทศตัวเอง)
+  // วิธี: เอาเวลาสากล (UTC) + 7 ชั่วโมง แล้วอ่านด้วย getUTC... เพื่อไม่ให้เบราว์เซอร์แปลงโซนซ้ำ
+  function rsState() {
+    const th = new Date(Date.now() + 7 * 3600 * 1000);
+    const m = th.getUTCHours() * 60 + th.getUTCMinutes();
+    return m < RS_OPEN_MIN ? "before" : m >= RS_CLOSE_MIN ? "after" : "open";
+  }
+
+  // CSS ของปุ่มที่ถูกบล็อก + popup (ใส่จาก JS เพื่อไม่ต้องแก้ rs.css)
+  (function () {
+    const st = document.createElement("style");
+    st.textContent = `
+#btn-rs.rs-closed{filter:grayscale(.85);opacity:.72}
+.rs-txt small.rs-hours{display:block;margin-top:2px;font-weight:600;color:#ffd9a0}
+.rs-pop{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(10,20,35,.55)}
+.rs-pop.show{display:flex}
+.rs-pop-box{width:100%;max-width:340px;background:#fff;border-radius:20px;padding:26px 22px 20px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.rs-pop-ico{font-size:42px;line-height:1}
+.rs-pop-box h3{margin:10px 0 8px;font-size:19px;color:#15324f}
+.rs-pop-box p{margin:0 0 18px;font-size:15px;line-height:1.55;color:#44546a}
+.rs-pop-box button{width:100%;border:0;border-radius:12px;padding:12px;font:inherit;font-weight:700;background:#e8603c;color:#fff;cursor:pointer}`;
+    document.head.appendChild(st);
+  })();
+
+  function rsPopup(kind) {
+    let el = $("#rs-closed-pop");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "rs-closed-pop"; el.className = "rs-pop";
+      el.innerHTML = '<div class="rs-pop-box" role="alertdialog" aria-modal="true"><div class="rs-pop-ico">🛎️</div><h3></h3><p></p><button type="button"></button></div>';
+      el.addEventListener("click", e => { if (e.target === el || e.target.tagName === "BUTTON") el.classList.remove("show"); });
+      document.body.appendChild(el);
+    }
+    const k = kind === "before" ? "Before" : "After";
+    el.querySelector("h3").textContent = t("rs" + k + "Title");
+    el.querySelector("p").textContent = fillHours(t("rs" + k + "Msg"));
+    el.querySelector("button").textContent = t("rsOk");
+    el.classList.add("show");
+  }
+
+  // ด่านตรวจ: คืน true ถ้าเปิดให้สั่งได้ / ถ้าไม่ใช่ จะเด้ง popup แล้วคืน false
+  function rsGuard() {
+    const s = rsState();
+    if (s === "open") return true;
+    rsPopup(s); return false;
+  }
+
+  // ปุ่มบนหน้าแรก: เทาเมื่อปิด + ข้อความเวลา (อัปเดตทุก 30 วินาที ให้เปลี่ยนเองตอน 11.00 / 20.00)
+  function refreshRsButton() {
+    const btn = $("#btn-rs"); if (!btn) return;
+    const closed = rsState() !== "open";
+    btn.classList.toggle("rs-closed", closed);
+    btn.setAttribute("aria-disabled", closed ? "true" : "false");
+    const h = $("#rs-hours"); if (h) h.textContent = fillHours(t("rsHours"));
+  }
+  refreshRsButton();
+  setInterval(refreshRsButton, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshRsButton(); });
+  document.addEventListener("langChange", refreshRsButton);
+
   function openRs() {
     RS.cat = "all";
     $("#rs-order").classList.remove("hidden");
@@ -89,7 +173,7 @@
     renderRs();
     show("screen-rs");
   }
-  $("#btn-rs").onclick = openRs;
+  $("#btn-rs").onclick = () => { if (rsGuard()) openRs(); };
   $("#btn-rs-back").onclick = () => {
     if (RS.cart.length && !confirm(t("rsLeave"))) return;
     RS.cart = []; RS.reqId = "";
@@ -192,6 +276,7 @@
 
   /* ---- ยืนยัน / ส่งออเดอร์ ---- */
   $("#btn-rs-review").onclick = () => {
+    if (!rsGuard()) return;                      // นั่งเลือกนานจนเลยเวลา → เด้ง popup
     if (!RS.cart.length) return toast(t("rsNeedItems"));
     try {
       const g = JSON.parse(sessionStorage.getItem("ss_rs_guest") || "{}");
@@ -208,6 +293,7 @@
 
   $("#btn-rs-submit").onclick = async () => {
     if (RS.busy) return;
+    if (!rsGuard()) return;                      // กดยืนยันตอนเลยเวลา
     const name = $("#rs-name").value.trim(), room = $("#rs-room").value.trim();
     if (!name || !room) return toast(t("rsNeedInfo"));
     if (!RS.cart.length) return toast(t("rsNeedItems"));
@@ -236,6 +322,8 @@
         await loadMenuData();
         RS.cart = RS.cart.filter(l => { const it = findItem(l.itemId); return it && it.roomService && Number(it.rsPrice) > 0; });
         renderRs();
+      } else if (res && res.code === "RS_CLOSED") {
+        rsPopup(res.state === "before" ? "before" : "after");   // เซิร์ฟเวอร์ตัดสินแล้วว่าปิด (กันนาฬิกามือถือเพี้ยน)
       } else if (res && res.code === "TOO_MANY") {
         toast(t("rsErrMany"));
       } else {
