@@ -8,7 +8,8 @@ const POS = {
   staff: localStorage.getItem("ss_staff") || "",
   bills: [],          // โต๊ะที่เปิดอยู่ (จาก server)
   qrUrl: "",
-  billId: null,       // null = เปิดโต๊ะใหม่, มีค่า = สั่งเพิ่มโต๊ะเดิม
+  billId: null,       // บิลของโต๊ะที่กำลังสั่ง (เปิดโต๊ะใหม่ก็จะได้ billId ทันทีจาก server)
+  isNewTable: false,  // true = เพิ่งเปิดโต๊ะ ยังไม่เคยสั่งอาหารสักรอบ
   tableNo: "",
   cart: [],           // [{itemId,name,price,qty,note}]
   period: "all",
@@ -153,27 +154,46 @@ $("#btn-open-table").onclick = async () => {
   const room = ($("#pos-room").value || "").trim();
   if (hotel && !room) return toast("กรุณาใส่เลขห้องของลูกค้าโรงแรม");
   POS.staff = staff; localStorage.setItem("ss_staff", staff);
-  const ok = await refreshBills();
-  if (!ok) return;
-  if (POS.bills.some(b => normTable(b.tableNo) === tno))
-    return toast(`โต๊ะ ${tno} ยังเปิดอยู่ (ยังไม่เช็คบิล) — ใช้เลขซ้ำไม่ได้`);
+  const btn = $("#btn-open-table");
+  if (btn.disabled) return;               // กันกดซ้ำระหว่างรอ server
+  btn.disabled = true;
+  showLoading("กำลังเปิดโต๊ะ...");
+  const res = await call("openTable", { tableNo: tno, staff, customerType: POS.customerType, roomNo: hotel ? room : "" });
+  hideLoading();
+  btn.disabled = false;
+  if (!res) return;
+  if (!res.ok) {
+    toast(res.message || "เปิดโต๊ะไม่สำเร็จ");
+    if (res.code === "TABLE_OPEN") await refreshBills(true);   // อัปเดตรายการโต๊ะให้เห็นโต๊ะที่ถูกเปิดไปแล้ว
+    return;
+  }
   $("#pos-table-no").value = "";
   POS.roomNo = hotel ? room : "";
-  startOrder(null, tno);
+  startOrder(res.billId, res.tableNo || tno, true);
 };
 
 /* ============================ POS: ORDER ============================ */
-function startOrder(billId, tno) {
-  POS.billId = billId; POS.tableNo = tno;
+function startOrder(billId, tno, isNew) {
+  POS.billId = billId; POS.tableNo = tno; POS.isNewTable = !!isNew;
   POS.cart = []; POS.q = ""; POS.cat = "all"; POS.period = "all";
   $("#pos-search").value = "";
-  $("#pos-order-title").textContent = (billId ? "สั่งเพิ่ม · " : "เปิดโต๊ะ · ") + "โต๊ะ " + tno + (POS.customerType === "hotel" ? " · 🏨 ห้อง " + POS.roomNo : "");
+  $("#pos-order-title").textContent = (isNew ? "เปิดโต๊ะ · " : "สั่งเพิ่ม · ") + "โต๊ะ " + tno + (POS.customerType === "hotel" ? " · 🏨 ห้อง " + POS.roomNo : "");
   renderPosChips(); renderPosMenu(); renderCart();
   posView("order");
 }
-$("#btn-order-back").onclick = () => {
+$("#btn-order-back").onclick = async () => {
   if (POS.cart.length && !confirm("ยังมีรายการที่ยังไม่ยืนยัน ต้องการออกและทิ้งรายการ?")) return;
   POS.cart = [];
+  if (POS.isNewTable && POS.billId) {      // เพิ่งเปิดโต๊ะแต่ยังไม่สั่ง → คืนเลขโต๊ะ ไม่ให้ค้าง
+    showLoading("กำลังยกเลิกโต๊ะ...");
+    const res = await call("cancelTable", { billId: POS.billId });
+    hideLoading();
+    if (res && !res.ok) toast(res.message || "ยกเลิกโต๊ะไม่สำเร็จ");
+    POS.isNewTable = false; POS.billId = null;
+    await refreshBills(true);
+    posView("tables");
+    return;
+  }
   posView(POS.billId ? "detail" : "tables");
 };
 
@@ -291,19 +311,17 @@ $("#btn-confirm-ok").onclick = async () => {
   const staff = POS.staff || ($("#pos-staff").value || "").trim();
   const lines = POS.cart.map(l => ({ itemId: l.itemId, qty: l.qty, note: l.note.trim() }));
   showLoading("กำลังบันทึกออเดอร์...");
-  const res = POS.billId
-    ? await call("addToBill", { billId: POS.billId, staff, lines })
-    : await call("createOrder", { tableNo: POS.tableNo, staff, lines, customerType: POS.customerType, roomNo: POS.roomNo });
+  const res = await call("addToBill", { billId: POS.billId, staff, lines });
   hideLoading();
   if (!res) return;
   closeModal("pos-confirm");
   if (!res.ok) {
     toast(res.message || "บันทึกไม่สำเร็จ");
-    if (res.code === "TABLE_OPEN") { await refreshBills(true); posView("tables"); }
+    if (res.code === "BILL_CLOSED") { POS.cart = []; POS.isNewTable = false; POS.billId = null; await refreshBills(true); posView("tables"); }
     return;
   }
   toast("รับออเดอร์เรียบร้อย ✔ ส่งเข้าเครื่องพิมพ์แล้ว");
-  POS.cart = [];
+  POS.cart = []; POS.isNewTable = false;
   setCustomer("outside");
   await refreshBills(true);
   posView("tables");
@@ -321,6 +339,9 @@ function renderDetail() {
   const b = currentBill();
   if (!b) { posView("tables"); return; }
   $("#pos-detail-title").textContent = "โต๊ะ " + b.tableNo;
+  const empty = !(b.lines || []).length;
+  $("#btn-cancel-table").classList.toggle("hidden", !empty);
+  $("#btn-checkout").classList.toggle("hidden", empty);
   const rounds = {};
   (b.lines || []).forEach(l => { (rounds[l.round] = rounds[l.round] || []).push(l); });
   $("#pos-detail-body").innerHTML =
@@ -336,6 +357,16 @@ function renderDetail() {
     `<div class="sum-total"><span>ยอดรวม</span><b>฿${fmt(b.subtotal)}</b></div>`;
 }
 $("#btn-detail-back").onclick = () => posView("tables");
+$("#btn-cancel-table").onclick = async () => {
+  const b = currentBill(); if (!b) return;
+  if (!confirm("ยกเลิกโต๊ะ " + b.tableNo + " ? (ยังไม่มีรายการอาหาร)")) return;
+  showLoading("กำลังยกเลิกโต๊ะ...");
+  const res = await call("cancelTable", { billId: b.billId });
+  hideLoading();
+  if (res && !res.ok) toast(res.message || "ยกเลิกโต๊ะไม่สำเร็จ");
+  await refreshBills(true);
+  posView("tables");
+};
 $("#btn-add-more").onclick = () => {
   const b = currentBill(); if (!b) return;
   if (!POS.staff) POS.staff = b.staff;
