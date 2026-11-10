@@ -16,7 +16,9 @@ const POS = {
   q: "",
   detailId: null,
   payMethod: "",
-  discount: 0
+  discount: 0,
+  customerType: "outside",   // outside | hotel
+  roomNo: ""
 };
 const PAY_LABEL = { cash: "เงินสด 💵", credit: "เครดิต 💳", room: "ลงห้อง 🏨", qr: "QR 📱" };
 const fmt = n => Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -40,9 +42,17 @@ async function call(action, data) {
     }
     return res;
   } catch (e) {
+    console.error("API error", e);
+    POS.lastErr = "เชื่อมต่อ Apps Script ไม่สำเร็จ — ส่วนใหญ่เกิดจากยังไม่ได้รัน repairAndSetup / ยังไม่ได้ Deploy code.gs เวอร์ชันใหม่ หรือสคริปต์เกิดข้อผิดพลาด (ดูหน้า Executions ใน Apps Script)";
     toast("เชื่อมต่อไม่สำเร็จ");
     return null;
   }
+}
+function setPosError(msg) {
+  const el = $("#pos-error");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.classList.toggle("hidden", !msg);
 }
 function openModal(id) { $("#" + id).classList.remove("hidden"); }
 function closeModal(id) { $("#" + id).classList.add("hidden"); }
@@ -109,7 +119,11 @@ async function refreshBills(silent) {
   if (!silent) showLoading("กำลังโหลดโต๊ะ...");
   const res = await call("getOpenBills");
   hideLoading();
-  if (res && res.ok) { POS.bills = res.bills || []; POS.qrUrl = res.qrUrl || ""; }
+  if (res && res.ok) { POS.bills = res.bills || []; POS.qrUrl = res.qrUrl || ""; setPosError(""); }
+  else if (res) {
+    setPosError("⚠️ โหลดโต๊ะไม่สำเร็จ: " + (res.message || "ไม่ทราบสาเหตุ") +
+      (res.message === "Unknown action" ? " — แปลว่า Apps Script ยังเป็นเวอร์ชันเก่า ให้ Deploy code.gs เวอร์ชันใหม่" : ""));
+  } else if (POS.lastErr) setPosError("⚠️ " + POS.lastErr);
   renderTables();
   return !!(res && res.ok);
 }
@@ -124,7 +138,7 @@ function renderTables() {
     <button class="table-btn" data-bill="${escapeHtml(b.billId)}">
       <span class="tno">${escapeHtml(b.tableNo)}</span>
       <span class="tsum">฿${fmt(b.subtotal)}</span>
-      <span class="tmeta">${escapeHtml(b.staff)}</span>
+      <span class="tmeta">${b.customerType === "hotel" ? "🏨 ห้อง " + escapeHtml(b.roomNo) : "ลูกค้านอก"} · ${escapeHtml(b.staff)}</span>
     </button>`).join("");
   wrap.querySelectorAll("[data-bill]").forEach(b => b.onclick = () => openDetail(b.dataset.bill));
 }
@@ -135,12 +149,16 @@ $("#btn-open-table").onclick = async () => {
   const tno = normTable($("#pos-table-no").value);
   if (!staff) return toast("กรุณาใส่ชื่อพนักงานรับออเดอร์");
   if (!tno) return toast("กรุณาใส่เบอร์โต๊ะ");
+  const hotel = POS.customerType === "hotel";
+  const room = ($("#pos-room").value || "").trim();
+  if (hotel && !room) return toast("กรุณาใส่เลขห้องของลูกค้าโรงแรม");
   POS.staff = staff; localStorage.setItem("ss_staff", staff);
   const ok = await refreshBills();
   if (!ok) return;
   if (POS.bills.some(b => normTable(b.tableNo) === tno))
     return toast(`โต๊ะ ${tno} ยังเปิดอยู่ (ยังไม่เช็คบิล) — ใช้เลขซ้ำไม่ได้`);
   $("#pos-table-no").value = "";
+  POS.roomNo = hotel ? room : "";
   startOrder(null, tno);
 };
 
@@ -149,7 +167,7 @@ function startOrder(billId, tno) {
   POS.billId = billId; POS.tableNo = tno;
   POS.cart = []; POS.q = ""; POS.cat = "all"; POS.period = "all";
   $("#pos-search").value = "";
-  $("#pos-order-title").textContent = (billId ? "สั่งเพิ่ม · " : "เปิดโต๊ะ · ") + "โต๊ะ " + tno;
+  $("#pos-order-title").textContent = (billId ? "สั่งเพิ่ม · " : "เปิดโต๊ะ · ") + "โต๊ะ " + tno + (POS.customerType === "hotel" ? " · 🏨 ห้อง " + POS.roomNo : "");
   renderPosChips(); renderPosMenu(); renderCart();
   posView("order");
 }
@@ -257,6 +275,7 @@ $("#btn-review-order").onclick = () => {
   $("#pos-confirm-body").innerHTML = `
     <div class="sum-meta"><span>ผู้รับออเดอร์</span><b>${escapeHtml(staff)}</b></div>
     <div class="sum-meta"><span>โต๊ะ</span><b>${escapeHtml(POS.tableNo)}</b></div>
+    <div class="sum-meta"><span>ลูกค้า</span><b>${POS.customerType === "hotel" ? "🏨 โรงแรม ห้อง " + escapeHtml(POS.roomNo) : "ลูกค้านอก"}</b></div>
     <div class="sum-lines">
       ${POS.cart.map(l => `
         <div class="sum-line">
@@ -274,7 +293,7 @@ $("#btn-confirm-ok").onclick = async () => {
   showLoading("กำลังบันทึกออเดอร์...");
   const res = POS.billId
     ? await call("addToBill", { billId: POS.billId, staff, lines })
-    : await call("createOrder", { tableNo: POS.tableNo, staff, lines });
+    : await call("createOrder", { tableNo: POS.tableNo, staff, lines, customerType: POS.customerType, roomNo: POS.roomNo });
   hideLoading();
   if (!res) return;
   closeModal("pos-confirm");
@@ -285,6 +304,7 @@ $("#btn-confirm-ok").onclick = async () => {
   }
   toast("รับออเดอร์เรียบร้อย ✔ ส่งเข้าเครื่องพิมพ์แล้ว");
   POS.cart = [];
+  setCustomer("outside");
   await refreshBills(true);
   posView("tables");
 };
@@ -305,6 +325,7 @@ function renderDetail() {
   (b.lines || []).forEach(l => { (rounds[l.round] = rounds[l.round] || []).push(l); });
   $("#pos-detail-body").innerHTML =
     `<div class="sum-meta"><span>เปิดโดย</span><b>${escapeHtml(b.staff)}</b></div>` +
+    `<div class="sum-meta"><span>ลูกค้า</span><b>${b.customerType === "hotel" ? "🏨 โรงแรม ห้อง " + escapeHtml(b.roomNo) : "ลูกค้านอก"}</b></div>` +
     Object.keys(rounds).sort((a, c) => a - c).map(r => `
       <div class="round-title">รอบที่ ${r}</div>
       <div class="sum-lines">${rounds[r].map(l => `
@@ -318,6 +339,7 @@ $("#btn-detail-back").onclick = () => posView("tables");
 $("#btn-add-more").onclick = () => {
   const b = currentBill(); if (!b) return;
   if (!POS.staff) POS.staff = b.staff;
+  POS.customerType = b.customerType || "outside"; POS.roomNo = b.roomNo || "";
   startOrder(b.billId, b.tableNo);
 };
 
@@ -337,12 +359,18 @@ $("#btn-checkout").onclick = () => {
 };
 function renderCheckout() {
   const c = calcBill();
-  $("#co-table").textContent = "โต๊ะ " + (currentBill() || {}).tableNo;
+  const cb = currentBill() || {};
+  const isHotel = cb.customerType === "hotel";
+  if (!isHotel && POS.payMethod === "room") POS.payMethod = "";   // ลงห้องได้เฉพาะลูกค้าโรงแรม
+  $("#co-table").textContent = "โต๊ะ " + cb.tableNo + (isHotel ? " · 🏨 ห้อง " + cb.roomNo : "");
   $("#co-sub").textContent = "฿" + fmt(c.sub);
   $("#co-disc").textContent = c.pct ? `−฿${fmt(c.disc)} (${c.pct}%)` : "฿0";
   $("#co-total").textContent = "฿" + fmt(c.total);
   $$("#co-quick .chip").forEach(ch => ch.classList.toggle("active", Number(ch.dataset.pct) === c.pct));
-  $$("#co-methods .pay-btn").forEach(b => b.classList.toggle("active", b.dataset.m === POS.payMethod));
+  $$("#co-methods .pay-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.m === POS.payMethod);
+    if (b.dataset.m === "room") { b.disabled = !isHotel; b.style.opacity = isHotel ? "" : ".4"; }
+  });
   const qr = $("#co-qr");
   if (POS.payMethod === "qr") {
     qr.classList.remove("hidden");
@@ -398,3 +426,13 @@ function renderCategoryTagList() {
     else if (res) toast(res.message || "ไม่สำเร็จ");
   });
 }
+
+/* ============================ ประเภทลูกค้า (ลูกค้านอก / ลูกค้าโรงแรม + เลขห้อง) ============================ */
+function setCustomer(type) {
+  POS.customerType = type;
+  if (type !== "hotel") { POS.roomNo = ""; $("#pos-room").value = ""; }
+  $$("#pos-cust .pay-btn").forEach(b => b.classList.toggle("active", b.dataset.c === type));
+  $("#pos-room-wrap").classList.toggle("hidden", type !== "hotel");
+}
+$$("#pos-cust .pay-btn").forEach(b => b.onclick = () => setCustomer(b.dataset.c));
+setCustomer("outside");

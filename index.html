@@ -268,7 +268,16 @@
           <input type="text" id="pos-staff" placeholder="เช่น แอน"></div>
         <div class="field"><label>เบอร์โต๊ะ *</label>
           <input type="text" id="pos-table-no" placeholder="เช่น 5 หรือ A3" inputmode="text"></div>
+        <div class="field"><label>ลูกค้า *</label>
+          <div class="pay-grid" id="pos-cust" style="margin:0;">
+            <button type="button" class="pay-btn active" data-c="outside">🚶 ลูกค้านอก</button>
+            <button type="button" class="pay-btn" data-c="hotel">🏨 ลูกค้าโรงแรม</button>
+          </div>
+        </div>
+        <div class="field hidden" id="pos-room-wrap"><label>เลขห้อง *</label>
+          <input type="text" id="pos-room" placeholder="เช่น 305"></div>
         <button class="btn block" id="btn-open-table">เปิดโต๊ะ / เริ่มสั่งอาหาร</button>
+        <div id="pos-error" class="pos-error hidden"></div>
       </div>
       <div class="pos-section">
         <h4>โต๊ะที่เปิดอยู่ (แตะเพื่อสั่งเพิ่ม / เช็คบิล)</h4>
