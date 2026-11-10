@@ -351,7 +351,36 @@
   }
   window.updateRsBadge = updateBadge;
 
+  /* เสียงแจ้งเตือนออเดอร์ Room Service ใหม่ = ไฟล์ rs-alert.mp3 (วางไว้โฟลเดอร์เดียวกับ index.html)
+     ถ้าไฟล์โหลดไม่ได้/เล่นไม่ได้ จะใช้เสียงบี๊บสังเคราะห์เดิมแทน (beepTone) */
+  const ALERT_SRC = "rs-alert.mp3";
+  let alertAudio = null, audioUnlocked = false;
+  const getAlert = () => alertAudio || (alertAudio = Object.assign(new Audio(ALERT_SRC), { preload: "auto" }));
+
+  // เบราว์เซอร์มือถือไม่ยอมเล่นเสียงเองจนกว่าผู้ใช้จะแตะหน้าจออย่างน้อย 1 ครั้ง
+  // จึงแอบเล่นเสียงแบบปิดเสียง 1 ครั้งตอนแตะครั้งแรก เพื่อ "ปลดล็อก" ให้เล่นเสียงจริงได้ทีหลัง
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    try {
+      const a = getAlert(); a.muted = true;
+      const fin = () => { a.pause(); a.currentTime = 0; a.muted = false; };
+      const p = a.play();
+      if (p && p.then) p.then(() => { audioUnlocked = true; fin(); }).catch(() => { a.muted = false; });
+      else { audioUnlocked = true; fin(); }
+    } catch (e) {}
+  }
+  document.addEventListener("pointerdown", unlockAudio);
+  document.addEventListener("keydown", unlockAudio);
+
   function beep() {
+    try {
+      const a = getAlert(); a.muted = false; a.volume = 1; a.currentTime = 0;
+      const p = a.play();
+      if (p && p.catch) p.catch(beepTone);
+    } catch (e) { beepTone(); }
+  }
+
+  function beepTone() {
     try {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
       const c = new AC();
