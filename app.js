@@ -4,7 +4,7 @@
 =========================================================== */
 
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbwIYv5htYG4FB2v61C8khsuF0P3ZRMziHDd7xf43QiDD0k02yv-iJmuvdZVJzN9x_Kt7Q/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyZ6DVX_lYd4FpBtBGPvyEbQunAATiMD-5eNqQgv9PlfwwP5mGCU9xLHcwRfYpEUScVxg/exec",
   IMAGE_MAX_DIM: 1000,
   IMAGE_QUALITY: 0.82
 };
@@ -146,14 +146,14 @@ function toast(msg) {
 }
 
 function show(id) {
-  ["screen-home","screen-menu","screen-login","screen-staff","screen-pos"].forEach(s =>
+  ["screen-home","screen-menu","screen-login","screen-staff","screen-pos","screen-rs"].forEach(s =>
     $("#"+s).classList.toggle("hidden", s !== id)
   );
   $("#screen-admin").classList.add("hidden");
   window.scrollTo({ top: 0 });
 }
 function showAdmin() {
-  ["screen-home","screen-menu","screen-login","screen-staff","screen-pos"].forEach(s => $("#"+s).classList.add("hidden"));
+  ["screen-home","screen-menu","screen-login","screen-staff","screen-pos","screen-rs"].forEach(s => $("#"+s).classList.add("hidden"));
   $("#screen-admin").classList.remove("hidden");
 }
 
@@ -378,7 +378,7 @@ function renderAdminList() {
       ${item.imageUrl ? `<img src="${item.imageUrl}">` : `<div style="width:52px;height:52px;border-radius:10px;background:var(--sand);"></div>`}
       <div class="info">
         <div class="nm">${escapeHtml(item.name_th)}${enName}</div>
-        <div class="meta">${escapeHtml(cat ? cat.th : "-")} · ฿${Number(item.price).toLocaleString()} · ${periodLabel(item.period)}</div>
+        <div class="meta">${escapeHtml(cat ? cat.th : "-")} · ฿${Number(item.price).toLocaleString()} · ${periodLabel(item.period)}${item.roomService ? " · 🛎️ ฿" + Number(item.rsPrice).toLocaleString() : ""}</div>
       </div>
       <div class="actions">
         <button class="icon-btn" data-edit="${item.id}">✏️</button>
@@ -466,6 +466,9 @@ function editItem(id) {
   populateCategorySelect();
   $("#item-category").value = item.category_th || "";
   $("#item-period").value   = item.period || "lunch";
+  $("#item-rs").checked     = !!item.roomService;
+  $("#item-rs-price").value = item.roomService && item.rsPrice ? item.rsPrice : "";
+  syncRsAdmin();
   pendingImg = null;
   if (item.imageUrl) { $("#image-preview-img").src = item.imageUrl; $("#image-preview-img").style.display = "block"; }
   else { $("#image-preview-img").style.display = "none"; }
@@ -473,6 +476,10 @@ function editItem(id) {
 }
 
 $("#btn-reset-form").onclick = resetForm;
+
+// Room Service: เปิดสวิตช์แล้วค่อยแสดงช่องราคา
+function syncRsAdmin() { $("#rs-price-wrap").classList.toggle("hidden", !$("#item-rs").checked); }
+$("#item-rs").addEventListener("change", syncRsAdmin);
 function resetForm() {
   state.editingId = null;
   $("#form-title").textContent = "เพิ่มเมนูใหม่";
@@ -482,6 +489,7 @@ function resetForm() {
   });
   $("#item-category").value = "";
   $("#item-period").value = "lunch";
+  $("#item-rs").checked = false; $("#item-rs-price").value = ""; syncRsAdmin();
   $("#image-preview-img").style.display = "none";
   $("#image-input").value = "";
   pendingImg = null;
@@ -492,6 +500,9 @@ $("#btn-save-item").onclick = async () => {
   const price = fv("#item-price");
   const category = $("#item-category").value;
   if (!name || !price || !category) return toast("กรุณากรอกชื่อ (ไทย) ราคา และหมวดหมู่ให้ครบ");
+  const rsOn = $("#item-rs").checked;
+  const rsPrice = fv("#item-rs-price");
+  if (rsOn && !(Number(rsPrice) > 0)) return toast("กรุณาใส่ราคา Room Service");
 
   const cat = findCategory(category);
   const payload = {
@@ -505,7 +516,9 @@ $("#btn-save-item").onclick = async () => {
     description_zh: fv("#item-desc-zh"), description_ru: fv("#item-desc-ru"),
     category_th: category,
     category_en: cat ? cat.en : "", category_zh: cat ? cat.zh : "", category_ru: cat ? cat.ru : "",
-    imageBase64: pendingImg || undefined
+    imageBase64: pendingImg || undefined,
+    roomService: rsOn ? 1 : 0,
+    rsPrice: rsOn ? rsPrice : ""
   };
 
   showLoading("กำลังบันทึก...");

@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Prompt:wght@300;400;500;600&family=Noto+Sans+Thai:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="pos.css">
+<link rel="stylesheet" href="rs.css">
 </head>
 <body>
 <div id="app">
@@ -52,6 +53,11 @@
         <div class="time" data-i18n="dinnerSub">Dinner Menu</div>
       </button>
     </div>
+    <button class="rs-home-card" id="btn-rs" type="button">
+      <span class="rs-ico">🛎️</span>
+      <span class="rs-txt"><b data-i18n="roomService">Room Service</b><small data-i18n="roomServiceSub">สั่งอาหารถึงห้องพัก</small></span>
+      <span class="rs-arrow">›</span>
+    </button>
     <div class="staff-link">
       <button id="btn-staff-login" data-i18n="staffLogin">เข้าสู่ระบบพนักงาน</button>
     </div>
@@ -171,6 +177,20 @@
             </div>
           </div>
 
+          <!-- Room Service -->
+          <div class="rs-admin-box">
+            <label class="switch-row">
+              <input type="checkbox" id="item-rs">
+              <span class="switch-ui"></span>
+              <span>🛎️ เปิดขายใน Room Service</span>
+            </label>
+            <div class="field hidden" id="rs-price-wrap">
+              <label>ราคา Room Service (บาท) *</label>
+              <input type="number" id="item-rs-price" placeholder="220" inputmode="decimal">
+              <div class="hint-line">ราคาส่งห้องพัก (ไม่ต้องเท่ากับราคาหน้าร้านด้านบน) — ลูกค้า Room Service จะเห็นเฉพาะราคานี้</div>
+            </div>
+          </div>
+
           <!-- Description — 4 languages -->
           <div class="lang-section-label">รายละเอียด / Description</div>
           <div class="form-grid">
@@ -244,7 +264,7 @@
     <div class="login-box" style="max-width:420px; margin:30px auto;">
       <h2>เมนูพนักงาน</h2>
       <p>เลือกงานที่ต้องการทำ</p>
-      <button class="btn block big" id="btn-go-pos">🧾 รับออเดอร์ / เปิดโต๊ะ</button>
+      <button class="btn block big" id="btn-go-pos">🧾 รับออเดอร์ / เปิดโต๊ะ <span class="rs-badge hidden" id="rs-badge">0</span></button>
       <button class="btn block big secondary" id="btn-go-admin">🍽️ จัดการเมนู</button>
       <button class="btn block secondary" id="btn-go-qr">🔳 ตั้งค่ารูป QR ชำระเงิน</button>
       <input type="file" id="qr-input" accept="image/*" class="hidden">
@@ -309,6 +329,10 @@
         <h3 id="pos-detail-title">โต๊ะ</h3>
       </div>
       <div class="pos-section" id="pos-detail-body"></div>
+      <div class="rs-actions hidden" id="rs-actions">
+        <button class="btn block secondary" id="btn-rs-reject">✖ ปฏิเสธ / ลูกค้ายกเลิก</button>
+        <button class="btn block" id="btn-rs-confirm">📞 โทรยืนยันแล้ว · พิมพ์ออเดอร์</button>
+      </div>
       <div style="display:flex; gap:10px;">
         <button class="btn block secondary hidden" id="btn-cancel-table">ยกเลิกโต๊ะ</button>
         <button class="btn block secondary" id="btn-add-more">＋ สั่งเพิ่ม</button>
@@ -358,6 +382,47 @@
       <div class="actions">
         <button class="btn secondary" id="btn-pay-cancel">ยกเลิก</button>
         <button class="btn" id="btn-pay-ok" disabled>✔ ยืนยันรับชำระ & พิมพ์บิล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROOM SERVICE (หน้าลูกค้า) ===== -->
+  <main id="screen-rs" class="screen hidden">
+    <div id="rs-order">
+      <div class="topbar" style="padding:0 0 8px;">
+        <button class="back-btn" id="btn-rs-back">‹</button>
+        <span class="crumb" data-i18n="rsTitle">Room Service</span>
+      </div>
+      <div class="rs-note-line" data-i18n="rsNote">ราคา Room Service</div>
+      <div class="chip-row" id="rs-cat-chips"></div>
+      <div id="rs-cart" class="rs-cart hidden"></div>
+      <div class="rs-menu" id="rs-menu"></div>
+      <div class="rs-cartbar">
+        <div class="rs-bar-info"><span id="rs-cart-count">0</span> <span data-i18n="rsItemsCount">รายการ</span><b id="rs-cart-total">฿0</b></div>
+        <button class="btn" id="btn-rs-review" data-i18n="rsReview" disabled>ตรวจสอบคำสั่งซื้อ</button>
+      </div>
+    </div>
+    <div id="rs-done" class="rs-done hidden">
+      <div class="rs-done-ico">✅</div>
+      <h2 data-i18n="rsDoneTitle">ส่งคำสั่งเรียบร้อย</h2>
+      <p id="rs-done-msg"></p>
+      <button class="btn" id="btn-rs-home" data-i18n="rsHome">กลับหน้าหลัก</button>
+    </div>
+  </main>
+
+  <div class="rs-modal hidden" id="rs-confirm">
+    <div class="rs-sheet">
+      <h3 data-i18n="rsConfirmTitle">ยืนยันคำสั่งซื้อ</h3>
+      <div class="field"><label data-i18n="rsGuestName">ชื่อผู้สั่ง</label>
+        <input type="text" id="rs-name" maxlength="60" autocomplete="name"></div>
+      <div class="field"><label data-i18n="rsRoomNo">เบอร์ห้อง</label>
+        <input type="text" id="rs-room" maxlength="10" autocomplete="off"></div>
+      <div id="rs-confirm-body"></div>
+      <div class="field" style="margin-top:12px;"><label data-i18n="rsGeneralNote">หมายเหตุเพิ่มเติม</label>
+        <textarea id="rs-gnote" maxlength="200"></textarea></div>
+      <div class="rs-sheet-actions">
+        <button class="btn secondary" id="btn-rs-edit" data-i18n="rsEdit">กลับไปแก้ไข</button>
+        <button class="btn" id="btn-rs-submit" data-i18n="rsSubmit">✔ ยืนยันคำสั่ง</button>
       </div>
     </div>
   </div>
@@ -514,5 +579,6 @@
 
 <script src="app.js"></script>
 <script src="pos.js"></script>
+<script src="rs.js"></script>
 </body>
 </html>

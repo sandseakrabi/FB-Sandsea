@@ -19,7 +19,8 @@ const POS = {
   payMethod: "",
   discount: 0,
   customerType: "outside",   // outside | hotel
-  roomNo: ""
+  roomNo: "",
+  rs: false           // true = กำลังสั่งเพิ่มให้บิล Room Service (ใช้ราคา/เมนู Room Service)
 };
 const PAY_LABEL = { cash: "เงินสด 💵", credit: "เครดิต 💳", room: "ลงห้อง 🏨", qr: "QR 📱" };
 const fmt = n => Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -128,19 +129,38 @@ async function refreshBills(silent) {
   renderTables();
   return !!(res && res.ok);
 }
+function hm(ts) {
+  const d = new Date(Number(ts));
+  return isNaN(d) ? "" : d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+}
 function renderTables() {
-  $("#pos-staff").value = POS.staff;
+  if (!$("#pos-staff").value) $("#pos-staff").value = POS.staff;   // ไม่ทับชื่อที่กำลังพิมพ์ (หน้านี้รีเฟรชอัตโนมัติ)
+  if (typeof window.updateRsBadge === "function") window.updateRsBadge();
   const wrap = $("#pos-open-tables");
   if (!POS.bills.length) {
     wrap.innerHTML = `<div class="empty-state" style="padding:24px 10px;">ยังไม่มีโต๊ะที่เปิดอยู่</div>`;
     return;
   }
-  wrap.innerHTML = POS.bills.map(b => `
+  const isRs = b => b.channel === "roomservice";
+  const list = POS.bills.slice().sort((a, c) => (isRs(c) && c.rsStatus === "pending") - (isRs(a) && a.rsStatus === "pending"));
+  wrap.innerHTML = list.map(b => {
+    if (isRs(b)) {
+      const pend = b.rsStatus === "pending";
+      return `
+    <button class="table-btn rs${pend ? " pending" : ""}" data-bill="${escapeHtml(b.billId)}">
+      <span class="rs-tag">🛎️ Room Service${pend ? " · รอยืนยัน" : ""}</span>
+      <span class="tno">ห้อง ${escapeHtml(b.roomNo)}</span>
+      <span class="tsum">฿${fmt(b.subtotal)}</span>
+      <span class="tmeta">${escapeHtml(b.guestName || "")} · ${hm(b.openedAt)}</span>
+    </button>`;
+    }
+    return `
     <button class="table-btn" data-bill="${escapeHtml(b.billId)}">
       <span class="tno">${escapeHtml(b.tableNo)}</span>
       <span class="tsum">฿${fmt(b.subtotal)}</span>
       <span class="tmeta">${b.customerType === "hotel" ? "🏨 ห้อง " + escapeHtml(b.roomNo) : "ลูกค้านอก"} · ${escapeHtml(b.staff)}</span>
-    </button>`).join("");
+    </button>`;
+  }).join("");
   wrap.querySelectorAll("[data-bill]").forEach(b => b.onclick = () => openDetail(b.dataset.bill));
 }
 $("#btn-refresh-tables").onclick = () => refreshBills();
@@ -175,9 +195,11 @@ $("#btn-open-table").onclick = async () => {
 /* ============================ POS: ORDER ============================ */
 function startOrder(billId, tno, isNew) {
   POS.billId = billId; POS.tableNo = tno; POS.isNewTable = !!isNew;
+  const _rb = POS.bills.find(x => x.billId === billId);
+  POS.rs = !!(_rb && _rb.channel === "roomservice");
   POS.cart = []; POS.q = ""; POS.cat = "all"; POS.period = "all";
   $("#pos-search").value = "";
-  $("#pos-order-title").textContent = (isNew ? "เปิดโต๊ะ · " : "สั่งเพิ่ม · ") + "โต๊ะ " + tno + (POS.customerType === "hotel" ? " · 🏨 ห้อง " + POS.roomNo : "");
+  $("#pos-order-title").textContent = POS.rs ? ("สั่งเพิ่ม · 🛎️ Room Service · ห้อง " + POS.roomNo) : (isNew ? "เปิดโต๊ะ · " : "สั่งเพิ่ม · ") + "โต๊ะ " + tno + (POS.customerType === "hotel" ? " · 🏨 ห้อง " + POS.roomNo : "");
   renderPosChips(); renderPosMenu(); renderCart();
   posView("order");
 }
@@ -216,8 +238,10 @@ function renderPosChips() {
   mk(t("all"), "all");
   state.categories.filter(c => used.has(c.th)).forEach(c => mk(categoryLabel(c), c.th));
 }
+function posPrice(i) { return POS.rs ? Number(i.rsPrice) : Number(i.price); }   // บิล Room Service ใช้ราคา Room Service
 function periodItems() {
-  return state.items.filter(i => POS.period === "all" || i.period === POS.period || i.period === "both");
+  return state.items.filter(i => (!POS.rs || (i.roomService && Number(i.rsPrice) > 0)) &&
+    (POS.period === "all" || i.period === POS.period || i.period === "both"));
 }
 function posItems() {
   const q = POS.q.toLowerCase();
@@ -240,7 +264,7 @@ function renderPosMenu() {
     const sub = i.name_en ? `<span class="pos-sub">${escapeHtml(i.name_en)}</span>` : "";
     return `<button class="pos-row" data-id="${escapeHtml(i.id)}">
       <span class="pos-name">${escapeHtml(i.name_th)}${sub}</span>
-      <span class="pos-price">฿${fmt(i.price)}</span>
+      <span class="pos-price">฿${fmt(posPrice(i))}</span>
       <span class="pos-add">${n ? n : "+"}</span>
     </button>`;
   }).join("");
@@ -251,7 +275,7 @@ function addToCart(itemId) {
   if (!item) return;
   const same = POS.cart.find(l => l.itemId === itemId && !l.note);
   if (same) same.qty++;
-  else POS.cart.push({ itemId, name: item.name_th, price: Number(item.price), qty: 1, note: "" });
+  else POS.cart.push({ itemId, name: item.name_th, price: posPrice(item), qty: 1, note: "" });
   renderPosMenu(); renderCart();
 }
 function cartTotal() { return POS.cart.reduce((s, l) => s + l.price * l.qty, 0); }
@@ -338,15 +362,24 @@ function openDetail(billId) {
 function renderDetail() {
   const b = currentBill();
   if (!b) { posView("tables"); return; }
-  $("#pos-detail-title").textContent = "โต๊ะ " + b.tableNo;
+  const rs = b.channel === "roomservice", pend = rs && b.rsStatus === "pending";
+  $("#pos-detail-title").textContent = rs ? "🛎️ Room Service · ห้อง " + b.roomNo : "โต๊ะ " + b.tableNo;
   const empty = !(b.lines || []).length;
-  $("#btn-cancel-table").classList.toggle("hidden", !empty);
-  $("#btn-checkout").classList.toggle("hidden", empty);
+  $("#btn-cancel-table").classList.toggle("hidden", !empty || rs);
+  $("#btn-checkout").classList.toggle("hidden", empty || pend);
+  $("#btn-add-more").classList.toggle("hidden", pend);          // ยังไม่ยืนยัน → ห้ามสั่งเพิ่ม/เช็คบิล
+  $("#rs-actions").classList.toggle("hidden", !pend);
   const rounds = {};
   (b.lines || []).forEach(l => { (rounds[l.round] = rounds[l.round] || []).push(l); });
   $("#pos-detail-body").innerHTML =
-    `<div class="sum-meta"><span>เปิดโดย</span><b>${escapeHtml(b.staff)}</b></div>` +
-    `<div class="sum-meta"><span>ลูกค้า</span><b>${b.customerType === "hotel" ? "🏨 โรงแรม ห้อง " + escapeHtml(b.roomNo) : "ลูกค้านอก"}</b></div>` +
+    (rs
+      ? `<div class="rs-banner ${pend ? "pending" : "ok"}">${pend ? "⏳ รอพนักงานโทรยืนยันกับลูกค้าก่อน จึงจะพิมพ์ออเดอร์ได้" : "✔ ยืนยันแล้ว · ส่งเข้าครัว/บาร์แล้ว"}</div>` +
+        `<div class="sum-meta"><span>ชื่อลูกค้า</span><b>${escapeHtml(b.guestName)}</b></div>` +
+        `<div class="sum-meta"><span>ห้อง</span><b>🏨 ${escapeHtml(b.roomNo)}</b></div>` +
+        `<div class="sum-meta"><span>สั่งเมื่อ</span><b>${hm(b.openedAt)}</b></div>` +
+        (b.orderNote ? `<div class="rs-gnote">📝 ${escapeHtml(b.orderNote)}</div>` : "")
+      : `<div class="sum-meta"><span>เปิดโดย</span><b>${escapeHtml(b.staff)}</b></div>` +
+        `<div class="sum-meta"><span>ลูกค้า</span><b>${b.customerType === "hotel" ? "🏨 โรงแรม ห้อง " + escapeHtml(b.roomNo) : "ลูกค้านอก"}</b></div>`) +
     Object.keys(rounds).sort((a, c) => a - c).map(r => `
       <div class="round-title">รอบที่ ${r}</div>
       <div class="sum-lines">${rounds[r].map(l => `
@@ -383,7 +416,7 @@ function calcBill() {
   return { sub, pct, disc, total: Math.round((sub - disc) * 100) / 100 };
 }
 $("#btn-checkout").onclick = () => {
-  POS.payMethod = ""; POS.discount = 0;
+  POS.payMethod = (currentBill() || {}).channel === "roomservice" ? "room" : ""; POS.discount = 0;   // Room Service → เลือก "ลงห้อง" ให้อัตโนมัติ (เปลี่ยนได้)
   $("#pos-discount").value = "";
   renderCheckout();
   openModal("pos-checkout");
@@ -467,3 +500,38 @@ function setCustomer(type) {
 }
 $$("#pos-cust .pay-btn").forEach(b => b.onclick = () => setCustomer(b.dataset.c));
 setCustomer("outside");
+
+
+/* ============================ ROOM SERVICE (ฝั่งพนักงาน) ============================
+   ออเดอร์ที่ลูกค้าสั่งเองจะเป็น pending และ "ยังไม่พิมพ์" — พนักงานโทรยืนยันที่ห้องแล้วกดปุ่มนี้เท่านั้นจึงจะพิมพ์ */
+$("#btn-rs-confirm").onclick = async () => {
+  const b = currentBill(); if (!b || b.channel !== "roomservice") return;
+  let staff = POS.staff || localStorage.getItem("ss_staff") || "";
+  if (!staff) {
+    staff = (prompt("ชื่อพนักงานที่โทรยืนยัน") || "").trim();
+    if (!staff) return;
+    POS.staff = staff; localStorage.setItem("ss_staff", staff);
+  }
+  if (!confirm("ยืนยันว่าโทรคุยกับลูกค้าห้อง " + b.roomNo + " แล้ว\nและต้องการพิมพ์ออเดอร์เข้าครัว/บาร์ ?")) return;
+  const btn = $("#btn-rs-confirm"); if (btn.disabled) return;
+  btn.disabled = true;
+  showLoading("กำลังส่งเข้าเครื่องพิมพ์...");
+  const res = await call("rsConfirm", { billId: b.billId, staff });
+  hideLoading(); btn.disabled = false;
+  if (!res) return;
+  if (!res.ok) toast(res.message || "ยืนยันไม่สำเร็จ");
+  else toast("ยืนยันแล้ว ส่งเข้าเครื่องพิมพ์เรียบร้อย ✔");
+  await refreshBills(true);
+  renderDetail();
+};
+$("#btn-rs-reject").onclick = async () => {
+  const b = currentBill(); if (!b || b.channel !== "roomservice") return;
+  if (!confirm("ปฏิเสธ/ยกเลิกออเดอร์ Room Service ห้อง " + b.roomNo + " ?")) return;
+  showLoading("กำลังยกเลิก...");
+  const res = await call("rsReject", { billId: b.billId });
+  hideLoading();
+  if (!res) return;
+  toast(res.ok ? "ยกเลิกออเดอร์แล้ว" : (res.message || "ไม่สำเร็จ"));
+  await refreshBills(true);
+  posView("tables");
+};

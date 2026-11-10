@@ -6,7 +6,7 @@
    to index.html / app.js / style.css so old clients pick up the
    new files instead of being stuck on a stale cached copy. *** */
 
-const SW_VERSION = "v3-pos-2026-11-10";              // <-- bump this on every deploy
+const SW_VERSION = "v4-roomservice-2026-11-10";              // <-- bump this on every deploy
 const CACHE_NAME = "sandsea-shell-" + SW_VERSION;
 
 // Files that change often -> always try network first (falls back to cache offline)
@@ -17,6 +17,8 @@ const APP_SHELL = [
   "./app.js",
   "./pos.js",
   "./pos.css",
+  "./rs.js",
+  "./rs.css",
   "./manifest.json"
 ];
 
