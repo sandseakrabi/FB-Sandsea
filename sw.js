@@ -6,7 +6,7 @@
    to index.html / app.js / style.css so old clients pick up the
    new files instead of being stuck on a stale cached copy. *** */
 
-const SW_VERSION = "v6-rs-alert-sound-2026-11-10";              // <-- bump this on every deploy
+const SW_VERSION = "v7-rs-alert-bg-2026-11-10";              // <-- bump this on every deploy
 const CACHE_NAME = "sandsea-shell-" + SW_VERSION;
 
 // Files that change often -> always try network first (falls back to cache offline)
@@ -80,5 +80,16 @@ self.addEventListener("fetch", (event) => {
   // Cache-first for static assets (icons etc.)
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
+  );
+});
+
+// แตะแถบแจ้งเตือน Room Service → เปิด/สลับกลับมาที่แอป
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+      for (const c of list) { if ("focus" in c) return c.focus(); }
+      return self.clients.openWindow("./");
+    })
   );
 });

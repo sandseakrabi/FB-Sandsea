@@ -12,7 +12,7 @@
   const STR = {
     th: {
       roomService: "Room Service", roomServiceSub: "สั่งอาหารถึงห้องพัก",
-      rsTitle: "สั่งอาหารเข้าห้องพัก", rsNote: "🛎️ พนักงานจะโทรยืนยันที่ห้องก่อนเริ่มทำอาหาร",
+      rsTitle: "สั่งอาหารเข้าห้องพัก", rsNote: "🛎️ ราคา Room Service · พนักงานจะโทรยืนยันที่ห้องก่อนเริ่มทำอาหาร",
       rsMyOrder: "รายการที่เลือก", rsNotePh: "หมายเหตุ เช่น ไม่เผ็ด / ไม่ใส่ผัก",
       rsGeneralNote: "หมายเหตุเพิ่มเติมถึงครัว (ถ้ามี)", rsGuestName: "ชื่อผู้สั่ง *", rsRoomNo: "เบอร์ห้อง *",
       rsReview: "ตรวจสอบคำสั่งซื้อ", rsConfirmTitle: "ยืนยันคำสั่งซื้อ", rsEdit: "กลับไปแก้ไข", rsSubmit: "✔ ยืนยันคำสั่ง",
@@ -31,7 +31,7 @@
     },
     en: {
       roomService: "Room Service", roomServiceSub: "Order to your room",
-      rsTitle: "Room Service", rsNote: "🛎️ Our staff will call your room to confirm before we start cooking",
+      rsTitle: "Room Service", rsNote: "🛎️ Room Service prices · our staff will call your room to confirm before we start cooking",
       rsMyOrder: "Your selection", rsNotePh: "Note, e.g. no spice",
       rsGeneralNote: "Additional note for the kitchen (optional)", rsGuestName: "Your name *", rsRoomNo: "Room number *",
       rsReview: "Review order", rsConfirmTitle: "Confirm your order", rsEdit: "Back to edit", rsSubmit: "✔ Place order",
@@ -50,7 +50,7 @@
     },
     zh: {
       roomService: "客房送餐", roomServiceSub: "餐点送到房间",
-      rsTitle: "客房送餐", rsNote: "🛎️ 开始制作前，工作人员会致电您的房间确认",
+      rsTitle: "客房送餐", rsNote: "🛎️ 客房送餐价格 · 开始制作前，工作人员会致电您的房间确认",
       rsMyOrder: "已选菜品", rsNotePh: "备注，例如：不要辣",
       rsGeneralNote: "给厨房的补充备注（选填）", rsGuestName: "您的姓名 *", rsRoomNo: "房间号 *",
       rsReview: "核对订单", rsConfirmTitle: "确认订单", rsEdit: "返回修改", rsSubmit: "✔ 确认下单",
@@ -69,7 +69,7 @@
     },
     ru: {
       roomService: "Рум-сервис", roomServiceSub: "Заказ в номер",
-      rsTitle: "Рум-сервис", rsNote: "🛎️ перед приготовлением сотрудник позвонит в номер для подтверждения",
+      rsTitle: "Рум-сервис", rsNote: "🛎️ Цены рум-сервиса · перед приготовлением сотрудник позвонит в номер для подтверждения",
       rsMyOrder: "Выбранные блюда", rsNotePh: "Пожелание, напр. не острое",
       rsGeneralNote: "Дополнительный комментарий для кухни (необязательно)", rsGuestName: "Ваше имя *", rsRoomNo: "Номер комнаты *",
       rsReview: "Проверить заказ", rsConfirmTitle: "Подтверждение заказа", rsEdit: "Назад к редактированию", rsSubmit: "✔ Оформить заказ",
@@ -372,12 +372,21 @@
   document.addEventListener("pointerdown", unlockAudio);
   document.addEventListener("keydown", unlockAudio);
 
+  /* เล่นเสียง ALERT_REPEAT รอบ (จบรอบหนึ่งแล้วเว้น ALERT_GAP_MS ค่อยเล่นรอบต่อไป)
+     ถ้ามีออเดอร์ใหม่เข้ามาระหว่างเล่น จะเริ่มชุดใหม่ (run) ไม่ให้เสียงซ้อนกัน */
+  const ALERT_REPEAT = 3, ALERT_GAP_MS = 500;
+  const VIB = [].concat(...Array(ALERT_REPEAT).fill([400, 200, 400, 1000]));   // สั่นเป็นชุด 3 รอบ (Android)
+  let alertRun = 0;
   function beep() {
-    try {
-      const a = getAlert(); a.muted = false; a.volume = 1; a.currentTime = 0;
+    const a = getAlert(), run = ++alertRun; let n = 0;
+    const next = () => {
+      if (run !== alertRun || n >= ALERT_REPEAT) return;
+      n++; a.muted = false; a.volume = 1; a.currentTime = 0;
       const p = a.play();
-      if (p && p.catch) p.catch(beepTone);
-    } catch (e) { beepTone(); }
+      if (p && p.catch) p.catch(() => { if (run === alertRun) { n = ALERT_REPEAT; beepTone(); } });
+    };
+    a.onended = () => { if (run === alertRun && n < ALERT_REPEAT) setTimeout(next, ALERT_GAP_MS); };
+    try { next(); } catch (e) { beepTone(); }
   }
 
   function beepTone() {
@@ -394,9 +403,44 @@
     } catch (e) {}
   }
 
+  /* ---- แจ้งเตือนของระบบ (แถบแจ้งเตือนมือถือ) เมื่อแอปอยู่เบื้องหลัง ----
+     ต้องให้พนักงานกด "อนุญาต" 1 ครั้ง (ขอสิทธิ์ตอนแตะหน้าจอครั้งแรกหลังล็อกอิน)
+     เสียงของแถบแจ้งเตือนเป็นเสียงมาตรฐานของเครื่อง เปลี่ยนเป็นไฟล์ mp3 ไม่ได้ */
+  function askNotifyPermission() {
+    if (!state.adminToken || !("Notification" in window) || Notification.permission !== "default") return;
+    try { Notification.requestPermission(); } catch (e) {}
+  }
+  document.addEventListener("pointerdown", askNotifyPermission);
+
+  async function notifyBackground(fresh) {
+    try {
+      if (!("Notification" in window) || Notification.permission !== "granted" || !navigator.serviceWorker) return;
+      const reg = await navigator.serviceWorker.getRegistration(); if (!reg) return;
+      await reg.showNotification("🛎️ Room Service ใหม่", {
+        body: "ห้อง " + fresh.map(b => b.roomNo).join(", ") + " · รอโทรยืนยัน",
+        tag: "rs-new", renotify: true, requireInteraction: true,
+        vibrate: VIB, icon: "icon-192.png", data: { url: "./" }
+      });
+    } catch (e) {}
+  }
+
+  /* ---- กันหน้าจอดับ (เครื่องประจำจุดรับออเดอร์) ----
+     หน้าจอดับ/ล็อก = มือถือหยุดการทำงานของเว็บ จะไม่ได้ยินเสียงเลย จึงขอให้จอติดไว้ขณะเปิดแอปอยู่
+     ปิดฟีเจอร์นี้ได้โดยเปลี่ยนเป็น false (กินแบตมากขึ้น แนะนำเสียบชาร์จทิ้งไว้) */
+  const KEEP_SCREEN_ON = true;
+  let wakeLock = null;
+  async function keepAwake() {
+    if (!KEEP_SCREEN_ON || !state.adminToken || document.hidden || wakeLock || !navigator.wakeLock) return;
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    } catch (e) {}
+  }
+
   async function poll() {
-    if (!state.adminToken) { baseline = false; return; }
-    if (document.hidden || inflight) return;
+    if (!state.adminToken) { baseline = false; if (wakeLock) { try { wakeLock.release(); } catch (e) {} } return; }
+    keepAwake();
+    if (inflight) return;                                                // (เดิมข้ามตอนหน้าถูกซ่อน → ตอนนี้ยังเช็คต่อถ้าเบราว์เซอร์ยังให้ทำงาน)
     if (!$("#loading-overlay").classList.contains("hidden")) return;   // กำลังบันทึกอะไรอยู่ ไม่รบกวน
     inflight = true;
     try {
@@ -409,7 +453,8 @@
       renderTables();
       if (baseline && fresh.length) {
         beep();
-        if (navigator.vibrate) navigator.vibrate([250, 120, 250]);
+        if (navigator.vibrate) navigator.vibrate(VIB);
+        if (document.hidden) notifyBackground(fresh);                    // อยู่เบื้องหลัง → ขึ้นแถบแจ้งเตือนของเครื่องด้วย
         toast("🛎️ Room Service ใหม่ · ห้อง " + fresh.map(b => b.roomNo).join(", "));
       }
       baseline = true;
@@ -417,6 +462,6 @@
     finally { inflight = false; }
   }
   setInterval(poll, 12000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { keepAwake(); poll(); } });   // กลับเข้าแอป: เช็คทันที ถ้ามีออเดอร์ที่พลาดไปจะดังเลย
   setTimeout(poll, 2000);
 })();
